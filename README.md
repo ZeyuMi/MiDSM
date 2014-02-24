@@ -1,4 +1,4 @@
 MiDSM
 =====
 
-An distributed shared memory system in order to test the performance of different memory consistency models
+A distributed shared memory system in order to test the performance of different memory consistency models
