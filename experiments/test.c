@@ -2,5 +2,5 @@
 #include<stdlib.h>
 
 int main(){
-	system("ssh -f zeyu@192.168.48.40 mkdir ~/Desktop/testssh");
+	system("ssh -f yating@192.168.48.42 mkdir /home/yating/Desktop/testssh");
 }
