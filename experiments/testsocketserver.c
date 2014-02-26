@@ -7,7 +7,8 @@ int main(){
 	struct sockaddr_in server, client;
 	server.sin_family = AF_INET;
 	server.sin_port = 12345;
-	inet_pton(AF_INET, "192.168.48.42", &(server.sin_addr.s_addr));
+//	inet_pton(AF_INET, &INADDR_ANY, &(server.sin_addr.s_addr));
+	server.sin_addr.s_addr = INADDR_ANY;
 	bind(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
 	listen(fd, 10);
 	int addrsize = sizeof(struct sockaddr_in);	
