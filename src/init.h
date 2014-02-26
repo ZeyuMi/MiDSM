@@ -1,0 +1,1 @@
+void mi_init();
