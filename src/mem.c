@@ -16,7 +16,7 @@ void handler(int signo, siginfo_t *info, void *context){
 	address_t addr = ((long)faultaddress % PAGESIZE == 0) ? faultaddress : ((long)faultaddress / PAGESIZE * PAGESIZE) ;
 	/*check whether addr is in valid range*/
 	address_t maxaddr = pages[pagenum-1].addr + PAGESIZE;
-	if(addr < STARTADDRESS || addr > maxaddr){
+	if(addr < STARTADDRESS || addr >= maxaddr){
 		exit(1);
 	}
 	int pageindex = ((long)addr - STARTADDRESS) / PAGESIZE;
@@ -40,7 +40,8 @@ void *mi_alloc(int size){
 	if(rsize + globalAddress > MAXMEMSIZE)
 		return NULL;
 	while(allocesize > 0){
-		mmap((void *)(STARTADDRESS + globalAddress), 4096, PROT_READ , MAP_PRIVATE | MAP_FIXED, mapfd, 0);	
+		void *a = mmap((void *)(STARTADDRESS + globalAddress), 4096, PROT_READ , MAP_PRIVATE | MAP_FIXED, mapfd, 0);	
+		printf("%p\n", a);
 		pages[pagenum].addr = (address_t)STARTADDRESS + globalAddress;
 		pages[pagenum].state = RDONLY;
 		pagenum++;
