@@ -3,7 +3,7 @@
 
 void handler(int signo, siginfo_t *info, void *context){
 	printf("address is %p\n", info->si_addr);
-	exit(0);
+	exit(1);
 }
 
 int main(){
