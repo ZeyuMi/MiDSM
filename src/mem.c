@@ -7,8 +7,7 @@ mipage_t pages[MAXPAGENUM];
 long mapfd;
 
 void handler(int signo, siginfo_t *info, void *context){
-	
-	
+		
 }
 
 
@@ -19,10 +18,10 @@ void *mi_alloc(int size){
 
 
 /**
-*initialization work of memory management before the system is normally used 
+* initialization work of memory management before the system is normally used 
 **/
 void init_mem(){
-/*******************install segv signal handler***************************/
+/*******************install segv signal handler*************/
 	struct sigaction act;
 	act.sa_handler = (void (*)(int))handler;
 	sigemptyset(&act.sa_mask);
@@ -33,6 +32,6 @@ void init_mem(){
 		pages[i].addr = 0;
 		pages[i].state = 0;	
 	}
-/*******************prepare mapped file****************************/	
+/*******************prepare mapped file*********************/	
 	mapfd = open("/dev/zero", O_RDWR);
 }

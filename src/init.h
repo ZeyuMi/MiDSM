@@ -2,10 +2,8 @@
 #define MAXHOSTNUM 20
 
 typedef struct{
-	char address[80];
-	char username[80];
-	int addrlen;
-	int usernamelen;
+	char address[WORDSIZE];
+	char username[WORDSIZE];
 	} host_t;
 
 void mi_init();
