@@ -17,6 +17,7 @@ void handler(int signo, siginfo_t *info, void *context){
 	/*check whether addr is in valid range*/
 	address_t maxaddr = pages[pagenum-1].addr + PAGESIZE;
 	if(addr < STARTADDRESS || addr >= maxaddr){
+		printf("invalid address\n");
 		exit(1);
 	}
 	int pageindex = ((long)addr - STARTADDRESS) / PAGESIZE;
@@ -83,4 +84,6 @@ int main(){
 	printf("%d\n", *a);
 	*(a+1023) = 2;
 	printf("%d\n", *(a+1023));
+	*(a+1024) = 3;
+	printf("%d\n", *(a+1024));
 }
