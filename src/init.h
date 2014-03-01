@@ -1,5 +1,5 @@
 #define WORDSIZE 80
-#define MAXHOSTNUM 20
+#define MAX_HOST_NUM 20
 
 typedef struct{
 	char address[WORDSIZE];
