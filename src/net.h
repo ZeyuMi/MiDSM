@@ -5,6 +5,7 @@
 #define MAX_MSG_SIZE 40960
 #define MAX_QUEUE_SIZE MAX_HOST_NUM
 #define BASEPORT 12345
+#define MAX_RETRY_NUM 64
 
 typedef struct {
 		int from;

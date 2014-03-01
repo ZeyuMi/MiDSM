@@ -22,6 +22,7 @@ netmanager datamanager;
 netmanager ackmanager;
 
 void sigio_handler(int sigio, siginfo_t *info, void context){
+	
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
 	polltime.tv_sec = 0;
@@ -42,7 +43,7 @@ void sigio_handler(int sigio, siginfo_t *info, void context){
 						dest.sin_family = AF_INET;
 						inet_pton(AF_INET, hosts[i].address, &(dest.sin_addr.s_addr));
 						dest.sin_port = dataPorts[msg->from][myhostid];
-						sendto(ackmanager.snd_fds[myhostid][i], msg->seqno, 4, 0, &dest, sizeof(dest))	
+						sendto(ackmanager.snd_fds[i], &(msg->seqno), 4, 0, &dest, sizeof(dest));
 					}
 					msgEnqueue(1, msg);	
 					freeMsg(msg);
@@ -54,6 +55,13 @@ void sigio_handler(int sigio, siginfo_t *info, void context){
 		polltime.tv_usec = 0;
 		num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
 	}
+	
+	while(recvQueueSize > 0){
+		mimsg_t *msg = queueTop(1);
+		dispatchMsg(msg);
+		msgDequeue(1);
+	}
+	
 }
 
 
@@ -230,9 +238,37 @@ int msgDequeue(int type){
 }
 
 
+/**
+* append msg to sndQueue, and send all messages out
+* parameters
+*	msg : msg to be sent
+* return value
+*	 0 --- success
+*	-1 --- parameters error
+**/
 int sendMsg(mimsg_t *msg){
+	if(msg == NULL || msg->from != myhostid || msg->to == -1 || msg->command == -1){
+		return -1;
+	}
+	msgEnqueue(0, msg);
+	while(sndQueueSize > 0){
+		mimsg_t *m = queueTop(0);
+		int to = m->to;
+		int from = m->from;
+		struct sockaddr_in dest;
+		dest.sin_family = AF_INET;
+		inet_pton(AF_INET, hosts[to].address, &(dest.sin_addr.s_addr));
+		dest.sin_port = dataPorts[to][from];
 
-
+		int retry_num = 0;
+		int success = 0;
+		while((retry_num < MAX_RETRY_NUM) && success != 1){
+			sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, &dest, sizeof(dest));
+			
+		}
+		msgDequeue(0);
+	}
+	return 0;
 }
 
 
