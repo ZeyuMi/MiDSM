@@ -3,7 +3,7 @@
 #include<netdb.h>
 
 int main(){
-	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	int fd = socket(AF_INET, SOCK_DGRAM, 0);
 	struct sockaddr_in server, client;
 	server.sin_family = AF_INET;
 	server.sin_port = 12345;
@@ -12,8 +12,7 @@ int main(){
 	bind(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
 	listen(fd, 10);
 	int addrsize = sizeof(struct sockaddr_in);	
-	int clientFd = accept(fd, (struct sockaddr *)&client, &addrsize);
 	char buf[128];
-	int size = recv(clientFd, buf, 128, 0);
+	int size = recvfrom(fd, buf, 128, 0, NULL, NULL);
 	printf("%s\n", buf);		
 }
