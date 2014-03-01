@@ -4,7 +4,7 @@
 #include <pwd.h>
 #include "init.h"
 
-host_t hosts[MAXHOSTNUM];
+host_t hosts[MAX_HOST_NUM];
 int hostnum = 0;
 int myhostid = 0;
 

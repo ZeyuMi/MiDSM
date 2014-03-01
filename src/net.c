@@ -1,15 +1,59 @@
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+#include <sys/types.h>
+#include <sys/time.h>
 #include <signal.h>
 #include <netdb.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "net.h"
+#include "init.h"
+
+extern int myhostid;
+extern host_t hosts[MAX_HOST_NUM];
 
 mimsg_t sndQueue[MAX_QUEUE_SIZE];
 mimsg_t recvQueue[MAX_QUEUE_SIZE];
+int dataPorts[MAX_HOST_NUM][MAX_HOST_NUM];
+int ackPorts[MAX_HOST_NUM][MAX_HOST_NUM];
 int sndHead, sndTail, sndQueueSize, recvHead, recvTail, recvQueueSize;
+netmanager datamanager;
+netmanager ackmanager;
 
 void sigio_handler(int sigio, siginfo_t *info, void context){
-
+	fd_set readset = datamanager.recv_fdset;
+	struct timeval polltime;
+	polltime.tv_sec = 0;
+	polltime.tv_usec = 0;
+	int num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime)
+	if(num > 0){
+		int i;
+		for(i = 0; i < MAX_HOST_NUM; i++){
+			if(i != myhostid){
+				int fd = datamanager.recv_fds[myhostid][i];
+				if(FD_ISSET(fd, &readset)){
+					mimsg_t *msg = newMsg();
+					struct sockaddr_in addr;	
+					int s = sizeof(addr);
+					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0, &addr, &s);
+					if(size > 0){
+						struct sockaddr_in dest;
+						dest.sin_family = AF_INET;
+						inet_pton(AF_INET, hosts[i].address, &(dest.sin_addr.s_addr));
+						dest.sin_port = dataPorts[msg->from][myhostid];
+						sendto(ackmanager.snd_fds[myhostid][i], msg->seqno, 4, 0, &dest, sizeof(dest))	
+					}
+					msgEnqueue(1, msg);	
+					freeMsg(msg);
+				}
+			}
+		}
+		readset = datamanager.recv_fdset;
+		polltime.tv_sec = 0;
+		polltime.tv_usec = 0;
+		num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
+	}
 }
 
 
@@ -19,6 +63,8 @@ void sigio_handler(int sigio, siginfo_t *info, void context){
 void initnet(){
 	/***************initialize global variables*******************/	
 	sndHead = sndTail = sndQueueSize = recvHead = recvTail = recvQueueSize = 0;
+	memset(&datamanager, 0 , sizeof(netmanager));
+	memset(&ackmanager, 0 , sizeof(netmanager));
 	/***************set up signal handler*************************/
 	struct sigaction act;
 	act.sa_handler = (void (*)(int))sigio_handler;
@@ -26,8 +72,40 @@ void initnet(){
 	act.sa_flags = SA_SIGINFO;
 	sigaction(SIGIO, &act, NULL);
 	/***************initialize port number************************/
+	int i, j;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		for(j = 0; j < MAX_HOST_NUM; j++){
+			dataPorts[i][j] = BASEPORT + i * MAX_HOST_NUM + j;
+			ackPOrts[i][j] = BASEPORT + i * MAX_HOST_NUM * MAX_HOST_NUM + j * MAX_HOST_NUM;
+		}
+	}	
+	/***************create sockets********************************/	
+	//create sockets for sending and receiving data
+	int bufferSizeForData = (MAX_MSG_SIZE + 128) * 16;
+	int bufferSizeForAck = 4;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		int fd = createSocket(dataPorts[myhostid][i], 1, bufferSizeForData);
+		datamanager.recv_fds[i] = fd;
+		datamanager.recv_maxfd = max(datamanager.recv_maxfd, fd+1);
+		FD_SET(fd, &datamanager.recv_fdset); 
+		
+		fcntl(fd, F_SETOWN, getpid());
+		fcntl(fd, F_SETFL, O_ASYNC);
+		
+		fd = createSocket(0, 0, bufferSizeForData);
+		datamanager.snd_fds[i] = fd;	
+	}
 	
-	/***************create sockets********************************/
+	//create sockets for sending and receiving ACK flag
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		int fd = createSocket(dataPorts[myhostid][i], 1, bufferSizeForAck);
+		ackmanager.recv_fds[i] = fd;
+		ackmanager.recv_maxfd = max(datamanager.recv_maxfd, fd+1);
+		FD_SET(fd, &datamanager.recv_fdset); 
+		
+		fd = createSocket(0, 0, bufferSizeForAck);
+		ackmanager.snd_fds[i] = fd;	
+	}
 }
 
 
