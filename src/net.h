@@ -35,6 +35,7 @@ typedef struct {
 		int snd_fds[MAX_HOST_NUM];
 		int snd_seqs[MAX_HOST_NUM];
 		int recv_fds[MAX_HOST_NUM];
+		int recv_seqs[MAX_HOST_NUM];
 		fd_set recv_fdset;
 		int recv_maxfd;
 	} netmanager;

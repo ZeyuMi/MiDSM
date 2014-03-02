@@ -39,12 +39,15 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 					struct sockaddr_in addr;	
 					int s = sizeof(addr);
 					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0, &addr, &s);
-					if(size > 0){
+					int seqno = msg->seqno;
+					if((seqno > dataManager.recv_seqs[i]) && (size > 0)){
 						struct sockaddr_in dest;
 						dest.sin_family = AF_INET;
 						inet_pton(AF_INET, hosts[i].address, &(dest.sin_addr.s_addr));
 						dest.sin_port = ackPorts[msg->from][myhostid];
 						sendto(ackmanager.snd_fds[i], &(msg->seqno), 4, 0, &dest, sizeof(dest));
+						dataManager.recv_seqs[i] = seqno;
+						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
 					}
 					msgEnqueue(1, msg);	
 					freeMsg(msg);
@@ -330,7 +333,7 @@ int sendMsg(mimsg_t *msg){
 			int fd = ackmanager.recv_fds[to]; 
 			FD_SET(fd, &set);
 			struct timeval polltime;
-			polltime.tv_sec = 1;
+			polltime.tv_sec = 5;
 			int num = select(fd+1, &set, NULL, NULL, &polltime);
 			if(num > 0){
 				mimsg_t *ackmsg = newMsg();
