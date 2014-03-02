@@ -174,6 +174,8 @@ int createSocket(short int port, int isRecv, int bufSize){
 
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *)&bufSize, sizeof(bufSize));
 	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *)&bufSize, sizeof(bufSize));
+
+	printf("fd %d\n", fd);
 	
 	return fd;
 }
