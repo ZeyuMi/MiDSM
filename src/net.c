@@ -130,7 +130,7 @@ void initnet(){
 		ackmanager.snd_fds[i] = fd;	
 
 
-		printf("initialization netmanager recv_fds[%d] = %d, port = %d\n", i, fd, ackPorts[myhostid][i]);
+		printf("initialization ackmanager recv_fds[%d] = %d, port = %d\n", i, fd, ackPorts[myhostid][i]);
 
 
 	}
@@ -151,6 +151,11 @@ int createSocket(short int port, int isRecv, int bufSize){
 	if(port <= 1024 || (isRecv != 0 && isRecv != 1) || bufSize <= 0){
 		return -1;
 	}
+
+
+	printf("creating socket with port num = %d\n", port);	
+
+
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
