@@ -157,6 +157,11 @@ int createSocket(short int port, int isRecv, int bufSize){
 
 
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	if(fd == -1){
+		fprintf("err: %s\n", strerror(errno));
+	}
+
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	if(isRecv == 1){

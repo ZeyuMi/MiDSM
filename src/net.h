@@ -12,7 +12,8 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <unistd.h>
-#
+#include <errno.h>
+#include <string.h>
 
 #define MSG_HEAD_SIZE ((MAX_HOST_NUM+3)*4)
 #define MAX_MSG_SIZE 40960
