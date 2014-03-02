@@ -110,11 +110,14 @@ void initnet(){
 		fcntl(fd, F_SETOWN, getpid());
 		fcntl(fd, F_SETFL, O_ASYNC);
 		
-		fd = createSocket(0, 0, bufferSizeForData);
+		printf("initialization datamanager recv_fds[%d] = %d, port = %d\n", i, fd, dataPorts[myhostid][i]);
+
+
+		fd = createSocket(-1, 0, bufferSizeForData);
 		datamanager.snd_fds[i] = fd;	
 
 		
-		printf("initialization datamanager recv_fds[%d] = %d, port = %d\n", i, fd, dataPorts[myhostid][i]);
+		printf("initialization datamanager snd_fds[%d] = %d\n", i, fd);
 
 
 	}
@@ -126,11 +129,14 @@ void initnet(){
 		ackmanager.recv_maxfd = max(ackmanager.recv_maxfd, fd+1);
 		FD_SET(fd, &ackmanager.recv_fdset); 
 		
-		fd = createSocket(0, 0, bufferSizeForAck);
+		printf("initialization ackmanager recv_fds[%d] = %d, port = %d\n", i, fd, ackPorts[myhostid][i]);
+
+
+		fd = createSocket(-1, 0, bufferSizeForAck);
 		ackmanager.snd_fds[i] = fd;	
 
 
-		printf("initialization ackmanager recv_fds[%d] = %d, port = %d\n", i, fd, ackPorts[myhostid][i]);
+		printf("initialization ackmanager snd_fds[%d] = %d\n", i, fd);
 
 
 	}
@@ -148,13 +154,9 @@ void initnet(){
 *	  -1 --- parameters error
 **/
 int createSocket(short int port, int isRecv, int bufSize){
-	if(port <= 1024 || (isRecv != 0 && isRecv != 1) || bufSize <= 0){
+	if((port >= 0 && port < 1024) || (isRecv != 0 && isRecv != 1) || bufSize <= 0){
 		return -1;
 	}
-
-
-	printf("creating socket with port num = %d\n", port);	
-
 
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -175,8 +177,6 @@ int createSocket(short int port, int isRecv, int bufSize){
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *)&bufSize, sizeof(bufSize));
 	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *)&bufSize, sizeof(bufSize));
 
-	printf("fd %d\n", fd);
-	
 	return fd;
 }
 
