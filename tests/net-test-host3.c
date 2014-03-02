@@ -44,7 +44,6 @@ int main(){
 	m1->to = 0;
 	m1->command = TEST_COMMAND;
 	m1->seqno = 2;
-	char *s1 = "test from 1!";
 	apendMsgData(m1, s1, strlen(s1)+1);
 	sendMsg(m1);
 	freeMsg(m1);
