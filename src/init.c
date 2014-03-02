@@ -3,47 +3,69 @@
 #include <string.h>
 #include <pwd.h>
 #include "init.h"
+#include "net.h"
 
 host_t hosts[MAX_HOST_NUM];
 int hostnum = 0;
 int myhostid = 0;
 
-void readHosts();
-void findMyHostId();
-int readAddrFromStr(const char *str, int strlen, char *addr, int addrsize);
-int readNameFromStr(const char *str, int strlen, char *username, int usernamesize);
-int readSegFromStr(const char *str, int strlen, int index, char *content, int contentsize);
 
-
+/**
+* initialization of whole program
+**/
 void mi_init(int argc, char **argv){
-	readHosts();
-	findMyHostId();
+	if(argc <= 0 || argv == NULL || *argv == NULL){
+		printf("argument error\n");
+		exit(1);
+	}
+	initLocalEnv();
+	if(myhostid == 0){
+		startNodePrograms(argc, argv);
+	}	
 }
 
 
-void startNodePrograms(){
-
-
+/**
+* start program in other nodes
+**/
+void startNodePrograms(int argc, char **argv){
+	int i;
+	char remoteCommand[WORDSIZE*2];
+	for(i = 1; i < hostnum; i++){
+		memset(remoteCommand, 0, WORDSIZE*2);
+		strcat(remoteCommand, "ssh -fX ");
+		strcat(remoteCommand, hosts[i].username);
+		strcat(remoteCommand, "@");
+		strcat(remoteCommand, hosts[i].address);
+		strcat(remoteCommand, " /home/");
+		strcat(remoteCommand, hosts[i].username);
+		strcat(remoteCommand, "/Desktop/MiDSM/src/");
+		strcat(remoteCommand, (*argv)+2);
+		system(remoteCommand);	
+	}
 }
 
 
-void initVariables(int argc, char *argv){
-
-}
-
-
+/**
+* initialize hosts array, set myhostid value and call other module initialization procedure
+**/
 void initLocalEnv(){
-
-
+	readHosts(".mihosts");
+	int id = getuid();
+	struct passwd *user = getpwuid(id);
+	myhostid = findHostIdByName(user->pw_name);
+	initnet();
 } 
 
 
 /**
 * read hosts from .mihosts file
+* parameters
+*	filename : the name of file which contains information about ip and username
 **/
-void readHosts(){
-	FILE *hostfile = fopen(".mihosts", "r");
-	if(hostfile == 0){
+void readHosts(char *filename){
+	FILE *hostfile = fopen(filename, "r");
+	if(hostfile == NULL){
 		fprintf(stderr, ".mihosts cannot be opend\n");
 		exit(1);
 	}
@@ -54,8 +76,8 @@ void readHosts(){
 	while((read = getline(&line, &llen, hostfile)) != -1){
 		int addrlen = 0;
 		int namelen = 0;
-		readAddrFromStr(line, llen, hosts[hosti].address, WORDSIZE);						
-		readNameFromStr(line, llen, hosts[hosti].username, WORDSIZE);
+		readAddrFromStr(line, hosts[hosti].address, WORDSIZE);						
+		readNameFromStr(line, hosts[hosti].username, WORDSIZE);
 		hostnum++;
 		hosti++;
 	}
@@ -64,17 +86,22 @@ void readHosts(){
 /**
 * find the host index of this node
 * after this procedure, global variable myhostid will be given a value
+* return value
+*	>= 0 --- id 
+*	  -1 --- error
 **/
-void findMyHostId(){
-	int id = getuid();
-	struct passwd *user = getpwuid(id);
+int findHostIdByName(char *name){
+	if(name == NULL){
+		return -1;
+	}
 	int i = 0;
 	while(i < hostnum){
-		if(strcmp(hosts[i].username, user->pw_name) == 0){
-			myhostid = i;
-			return;
+		if(strcmp(hosts[i].username, name) == 0){
+			return i;
 		}
+		i++;
 	}
+	return -1;
 }
 
 
@@ -84,11 +111,11 @@ void findMyHostId(){
 *	addr is the returned ip
 * 	addrsize is the size of addr buffer
 * return value
-*	-1 --- ERROR
 *	 0 --- SUCCESS
+*	-1 --- ERROR
 **/
-int readAddrFromStr(const char *str, int strlen, char *addr, int addrsize){
-	return readSegFromStr(str, strlen, 0, addr, addrsize);
+int readAddrFromStr(const char *str, char *addr, int addrsize){
+	return readSegFromStr(str, 0, addr, addrsize);
 }
 
 
@@ -98,12 +125,13 @@ int readAddrFromStr(const char *str, int strlen, char *addr, int addrsize){
 *	username is the returned username
 * 	usernamesize is the size of username buffer
 * return value
-*	-1 --- ERROR
 *	 0 --- SUCCESS
+*	-1 --- ERROR
 **/
-int readNameFromStr(const char *str, int strlen, char *username, int usernamesize){
-	return readSegFromStr(str, strlen, 1, username, usernamesize);
+int readNameFromStr(const char *str, char *username, int usernamesize){
+	return readSegFromStr(str, 1, username, usernamesize);
 }
+
 
 /**
 * str consists of different segments, which are splitted by ' '. This procedure extract the specified segment.
@@ -112,11 +140,11 @@ int readNameFromStr(const char *str, int strlen, char *username, int usernamesiz
 * 	content is the returned segment
 * 	contentsize is the size of content
 * return value
-*	-1 --- ERROR
 *	 0 --- SUCCESS 
+*	-1 --- ERROR
 **/
-int readSegFromStr(const char *str, int strlen, int index, char *content, int contentsize){
-	if(str == NULL || index < 0 || content == NULL || contentsize == 0){
+int readSegFromStr(const char *str, int index, char *content, int contentsize){
+	if(str == NULL || index < 0 || content == NULL || contentsize <= 0){
 		return -1;
 	}
 	int ch = 0;

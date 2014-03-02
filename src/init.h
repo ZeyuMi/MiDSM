@@ -11,7 +11,11 @@ typedef struct{
 	} host_t;
 
 void mi_init(int argc, char **argv);
-void startNodePrograms();
-void initVariables(int argc, char **argv);
+void startNodePrograms(int argc, char **argv);
 void initLocalEnv();
+void readHosts(char *filename);
+int findHostIdByName(char *name);
+int readAddrFromStr(const char *str, char *addr, int addrsize);
+int readNameFromStr(const char *str, char *username, int usernamesize);
+int readSegFromStr(const char *str, int index, char *content, int contentsize);
 #endif
