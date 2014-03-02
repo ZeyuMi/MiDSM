@@ -335,8 +335,12 @@ int sendMsg(mimsg_t *msg){
 			int fd = ackmanager.recv_fds[to]; 
 			FD_SET(fd, &set);
 			struct timeval polltime;
-			polltime.tv_sec = 5;
+			polltime.tv_sec = 1;
+			polltime.tv_usec = 0;
 			int num = select(fd+1, &set, NULL, NULL, &polltime);
+			if(num == -1){
+				printf("error: %s\n", strerror(errno));
+			}
 			if(num > 0){
 				mimsg_t *ackmsg = newMsg();
 				int seqno = 0;
