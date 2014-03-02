@@ -50,7 +50,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 					int seqno = msg->seqno;
 					if(seqno > datamanager.recv_seqs[i]){
 						msgEnqueue(1, msg);	
-						dataManager.recv_seqs[i] = seqno;
+						datamanager.recv_seqs[i] = seqno;
 					}	
 					freeMsg(msg);
 				}
@@ -280,7 +280,7 @@ int msgDequeue(int type){
 **/
 void dispatchMsg(mimsg_t *msg){
 	if(msg == NULL || msg->command == -1){
-		return NULL;
+		return;
 	}
 	switch(msg->command){
 		case TEST_COMMAND:
