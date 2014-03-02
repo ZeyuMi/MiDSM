@@ -7,7 +7,7 @@
 
 extern int myhostid;
 extern host_t hosts[MAX_HOST_NUM];
-void send(){
+void notify(){
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
 	struct sockaddr_in to;
 	to.sin_family = AF_INET;
@@ -25,7 +25,7 @@ int main(){
 	strcpy(hosts[1].address, "192.168.48.40");
 	strcpy(hosts[1].username, "zeyu");
 
-	send();
+	notify();
 
 	initnet();
 	while(1)
