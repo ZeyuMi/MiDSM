@@ -15,7 +15,7 @@ void notify(){
 	to.sin_port = 33233;
 	inet_pton(AF_INET, "192.168.48.42", &(to.sin_addr.s_addr));
 	char *meg = "hello, world";
-	sendto(fd, meg, strlen(meg)+1, 0, &to, sizeof(to));
+	sendto(fd, meg, strlen(meg)+1, 0, (struct sockaddr *)&to, sizeof(to));
 	close(fd);
 	
 }

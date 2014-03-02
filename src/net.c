@@ -1,10 +1,8 @@
 #include "net.h"
 #include "util.h"
 
-//extern int myhostid;
-//extern host_t hosts[MAX_HOST_NUM];
-int myhostid;
-host_t hosts[MAX_HOST_NUM];
+extern int myhostid;
+extern host_t hosts[MAX_HOST_NUM];
 
 mimsg_t sndQueue[MAX_QUEUE_SIZE];
 mimsg_t recvQueue[MAX_QUEUE_SIZE];
@@ -19,9 +17,7 @@ void testCommand(mimsg_t *msg){
 }
 
 void sigio_handler(int sigio, siginfo_t *info, void *context){
-
-
-	printf("entering into sigio_handler\n");
+//	printf("entering into sigio_handler\n");
 	sigset_t blset;
 	sigset_t oldset;
 	sigemptyset(&blset);
@@ -42,13 +38,13 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 					mimsg_t *msg = newMsg();
 					struct sockaddr_in addr;	
 					int s = sizeof(addr);
-					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0, &addr, &s);
+					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0,(struct sockaddr *) &addr, &s);
 					if(size > 0){
 						struct sockaddr_in dest;
 						dest.sin_family = AF_INET;
 						inet_pton(AF_INET, hosts[i].address, &(dest.sin_addr.s_addr));
 						dest.sin_port = ackPorts[msg->from][myhostid];
-						sendto(ackmanager.snd_fds[i], &(msg->seqno), 4, 0, &dest, sizeof(dest));
+						sendto(ackmanager.snd_fds[i], &(msg->seqno), 4, 0, (struct sockaddr *)&dest, sizeof(dest));
 						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
 					}
 					int seqno = msg->seqno;
@@ -331,7 +327,7 @@ int sendMsg(mimsg_t *msg){
 			printf("send msg from %d to %d, dest ip = %s, dest port num = %d\n", from, to, hosts[to].address, dest.sin_port);
 
 
-			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, &dest, sizeof(dest));
+			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, (struct sockaddr *)&dest, sizeof(dest));
 
 			if(size == -1){
 				printf("error occur when sending data\n");

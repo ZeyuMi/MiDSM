@@ -15,10 +15,27 @@ int readNameFromStr(const char *str, int strlen, char *username, int usernamesiz
 int readSegFromStr(const char *str, int strlen, int index, char *content, int contentsize);
 
 
-void mi_init(){
+void mi_init(int argc, char **argv){
 	readHosts();
 	findMyHostId();
 }
+
+
+void startNodePrograms(){
+
+
+}
+
+
+void initVariables(int argc, char *argv){
+
+}
+
+
+void initLocalEnv(){
+
+
+} 
 
 
 /**

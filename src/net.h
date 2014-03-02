@@ -1,7 +1,6 @@
 #ifndef MINET_H
 #define MINET_H
 
-#include "init.h"
 #include <sys/select.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,6 +13,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include "init.h"
 
 #define MSG_HEAD_SIZE ((MAX_HOST_NUM+3)*4)
 #define MAX_MSG_SIZE 40960
