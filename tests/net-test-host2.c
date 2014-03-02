@@ -8,7 +8,7 @@
 extern int myhostid;
 extern host_t hosts[MAX_HOST_NUM];
 
-void sigio_handler(int sigio, siginfo_t *info, void *context){
+void sigio_handler1(int sigio, siginfo_t *info, void *context){
 
 
 	printf("entering into sigio_handler\n");
@@ -37,7 +37,7 @@ int main(){
 	notify();
 
 	struct sigaction act;
-	act.sa_handler = (void (*)(int))sigio_handler;
+	act.sa_handler = (void (*)(int))sigio_handler1;
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_SIGINFO;
 	sigaction(SIGIO, &act, NULL);

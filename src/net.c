@@ -164,11 +164,12 @@ int createSocket(short int port, int isRecv, int bufSize){
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	if(isRecv == 1){
-		addr.sin_port = htons(port);
+		addr.sin_port = port;
 	}else{
-		addr.sin_port = htons(0);
+		addr.sin_port = 0;
 	}
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	server.sin_addr.s_addr = INADDR_ANY;
+
 	bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *)&bufSize, sizeof(bufSize));
