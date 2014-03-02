@@ -1,6 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/socket.h>
-#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <signal.h>
@@ -8,10 +8,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "net.h"
-#include "init.h"
+#include "util.h"
 
-extern int myhostid;
-extern host_t hosts[MAX_HOST_NUM];
+//extern int myhostid;
+//extern host_t hosts[MAX_HOST_NUM];
+int myhostid;
+host_t hosts[MAX_HOST_NUM];
 
 mimsg_t sndQueue[MAX_QUEUE_SIZE];
 mimsg_t recvQueue[MAX_QUEUE_SIZE];
@@ -21,18 +23,21 @@ int sndHead, sndTail, sndQueueSize, recvHead, recvTail, recvQueueSize;
 netmanager datamanager;
 netmanager ackmanager;
 
-void sigio_handler(int sigio, siginfo_t *info, void context){
-	
+void testCommand(mimsg_t *msg){
+	printf("msg from %d to %d with command %d received!\n", msg->from, msg->to, msg->command);
+}
+
+void sigio_handler(int sigio, siginfo_t *info, void *context){
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
 	polltime.tv_sec = 0;
 	polltime.tv_usec = 0;
-	int num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime)
+	int num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
 	if(num > 0){
 		int i;
 		for(i = 0; i < MAX_HOST_NUM; i++){
 			if(i != myhostid){
-				int fd = datamanager.recv_fds[myhostid][i];
+				int fd = datamanager.recv_fds[i];
 				if(FD_ISSET(fd, &readset)){
 					mimsg_t *msg = newMsg();
 					struct sockaddr_in addr;	
@@ -42,7 +47,7 @@ void sigio_handler(int sigio, siginfo_t *info, void context){
 						struct sockaddr_in dest;
 						dest.sin_family = AF_INET;
 						inet_pton(AF_INET, hosts[i].address, &(dest.sin_addr.s_addr));
-						dest.sin_port = dataPorts[msg->from][myhostid];
+						dest.sin_port = ackPorts[msg->from][myhostid];
 						sendto(ackmanager.snd_fds[i], &(msg->seqno), 4, 0, &dest, sizeof(dest));
 					}
 					msgEnqueue(1, msg);	
@@ -84,7 +89,7 @@ void initnet(){
 	for(i = 0; i < MAX_HOST_NUM; i++){
 		for(j = 0; j < MAX_HOST_NUM; j++){
 			dataPorts[i][j] = BASEPORT + i * MAX_HOST_NUM + j;
-			ackPOrts[i][j] = BASEPORT + i * MAX_HOST_NUM * MAX_HOST_NUM + j * MAX_HOST_NUM;
+			ackPorts[i][j] = BASEPORT + i * MAX_HOST_NUM * MAX_HOST_NUM + j * MAX_HOST_NUM;
 		}
 	}	
 	/***************create sockets********************************/	
@@ -239,6 +244,26 @@ int msgDequeue(int type){
 
 
 /**
+* dispatch msg to corresponding handler, according to its command num
+* parameters
+*	msg : msg to be handled, not NULL
+**/
+void dispatchMsg(mimsg_t *msg){
+	if(msg == NULL || msg->command == -1){
+		return NULL;
+	}
+	switch(msg->command){
+		case TEST_COMMAND:
+			testCommand(msg);
+			break;
+		default: 
+			fprintf(stderr, "command %d has no handler\n", msg->command);
+			break;
+	}
+}
+
+
+/**
 * append msg to sndQueue, and send all messages out
 * parameters
 *	msg : msg to be sent
@@ -260,11 +285,29 @@ int sendMsg(mimsg_t *msg){
 		inet_pton(AF_INET, hosts[to].address, &(dest.sin_addr.s_addr));
 		dest.sin_port = dataPorts[to][from];
 
-		int retry_num = 0;
+		int retryNum = 0;
 		int success = 0;
-		while((retry_num < MAX_RETRY_NUM) && success != 1){
+		while((retryNum < MAX_RETRY_NUM) && success != 1){
 			sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, &dest, sizeof(dest));
-			
+			fd_set set;
+			FD_ZERO(&set);
+			int fd = ackmanager.recv_fds[to]; 
+			FD_SET(fd, &set);
+			struct timeval polltime;
+			polltime.tv_sec = 1;
+			int num = select(fd+1, &set, NULL, NULL, &polltime);
+			if(num > 0){
+				mimsg_t *ackmsg = newMsg();
+				int seqno = 0;
+				int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
+				if(seqno == m->seqno){
+					success = 1;
+				}	
+			}
+			retryNum++;
+		}
+		if(success != 1){
+			fprintf(stderr, "msg from %d to %d does not receive ack %d\n", m->from, m->to, m->seqno);
 		}
 		msgDequeue(0);
 	}
@@ -332,3 +375,5 @@ int freeMsg(mimsg_t *msg){
 		return 0;
 	}	
 }
+
+
