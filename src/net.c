@@ -168,7 +168,7 @@ int createSocket(short int port, int isRecv, int bufSize){
 	}else{
 		addr.sin_port = 0;
 	}
-	server.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_addr.s_addr = INADDR_ANY;
 
 	bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 
