@@ -1,12 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <signal.h>
-#include <netdb.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include "net.h"
 #include "util.h"
 
@@ -93,8 +84,8 @@ void initnet(){
 	int i, j;
 	for(i = 0; i < MAX_HOST_NUM; i++){
 		for(j = 0; j < MAX_HOST_NUM; j++){
-			dataPorts[i][j] = BASEPORT + i * MAX_HOST_NUM + j;
-			ackPorts[i][j] = BASEPORT + i * MAX_HOST_NUM * MAX_HOST_NUM + j * MAX_HOST_NUM;
+			dataPorts[i][j] = BASEPORT + (i+1) * MAX_HOST_NUM + j+1;
+			ackPorts[i][j] = BASEPORT + (i+1) * MAX_HOST_NUM * MAX_HOST_NUM + (j+1) * MAX_HOST_NUM;
 		}
 	}	
 	/***************create sockets********************************/	
@@ -107,8 +98,14 @@ void initnet(){
 		datamanager.recv_maxfd = max(datamanager.recv_maxfd, fd+1);
 		FD_SET(fd, &(datamanager.recv_fdset)); 
 		
-		fcntl(fd, F_SETOWN, getpid());
-		fcntl(fd, F_SETFL, O_ASYNC);
+		int res = fcntl(fd, F_SETOWN, getpid());
+		if(res == -1){
+			printf("cannot setown for fd %d\n", fd);
+		}
+		res = fcntl(fd, F_SETFL, O_ASYNC);
+		if(res == -1){
+			printf("cannot set asynchronous for fd %d\n", fd);
+		}
 		
 		printf("initialization datamanager recv_fds[%d] = %d, port = %d\n", i, fd, dataPorts[myhostid][i]);
 
@@ -313,13 +310,20 @@ int sendMsg(mimsg_t *msg){
 		dest.sin_port = dataPorts[to][from];
 
 
-		printf("send msg from %d to %d, dest ip = %s, dest port num = %d\n", from, to, hosts[to].address, dest.sin_port);
 
 
 		int retryNum = 0;
 		int success = 0;
-		while((retryNum < MAX_RETRY_NUM) && success != 1){
-			sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, &dest, sizeof(dest));
+		while((retryNum < MAX_RETRY_NUM) && (success != 1)){
+
+			printf("send msg from %d to %d, dest ip = %s, dest port num = %d\n", from, to, hosts[to].address, dest.sin_port);
+
+
+			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, &dest, sizeof(dest));
+
+			if(size == -1){
+				printf("error occur when sending data\n");
+			}
 			fd_set set;
 			FD_ZERO(&set);
 			int fd = ackmanager.recv_fds[to]; 
