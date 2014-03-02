@@ -48,7 +48,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
 					}
 					int seqno = msg->seqno;
-					if(seqno > dataManager.recv_seqs[i]){
+					if(seqno > datamanager.recv_seqs[i]){
 						msgEnqueue(1, msg);	
 						dataManager.recv_seqs[i] = seqno;
 					}	
