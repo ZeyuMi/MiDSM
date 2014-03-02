@@ -39,7 +39,7 @@ int main(){
 	apendMsgData(m1, s1, strlen(s1)+1);
 	sendMsg(m1);
 	freeMsg(m1);
-		
+	
 	while(1)
 		;
 }

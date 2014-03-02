@@ -22,7 +22,11 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 
 
 	printf("entering into sigio_handler\n");
-
+	sigset_t blset;
+	sigset_t oldset;
+	sigemptyset(&blset);
+	sigaddset(&blset, SIGIO);
+	sigprocmask(SIG_BLOCK, &blset, &oldset);
 
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
@@ -62,6 +66,8 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
 	}
 	
+	sigprocmask(SIG_UNBLOCK, &oldset, NULL);
+
 	while(recvQueueSize > 0){
 		mimsg_t *msg = queueTop(1);
 		dispatchMsg(msg);
