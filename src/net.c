@@ -105,24 +105,34 @@ void initnet(){
 		int fd = createSocket(dataPorts[myhostid][i], 1, bufferSizeForData);
 		datamanager.recv_fds[i] = fd;
 		datamanager.recv_maxfd = max(datamanager.recv_maxfd, fd+1);
-		FD_SET(fd, &datamanager.recv_fdset); 
+		FD_SET(fd, &(datamanager.recv_fdset)); 
 		
 		fcntl(fd, F_SETOWN, getpid());
 		fcntl(fd, F_SETFL, O_ASYNC);
 		
 		fd = createSocket(0, 0, bufferSizeForData);
 		datamanager.snd_fds[i] = fd;	
+
+		
+		printf("initialization datamanager recv_fds[%d] = %d, port = %d\n", i, fd, dataPorts[myhostid][i]);
+
+
 	}
 	
 	//create sockets for sending and receiving ACK flag
 	for(i = 0; i < MAX_HOST_NUM; i++){
-		int fd = createSocket(dataPorts[myhostid][i], 1, bufferSizeForAck);
+		int fd = createSocket(ackPorts[myhostid][i], 1, bufferSizeForAck);
 		ackmanager.recv_fds[i] = fd;
-		ackmanager.recv_maxfd = max(datamanager.recv_maxfd, fd+1);
-		FD_SET(fd, &datamanager.recv_fdset); 
+		ackmanager.recv_maxfd = max(ackmanager.recv_maxfd, fd+1);
+		FD_SET(fd, &ackmanager.recv_fdset); 
 		
 		fd = createSocket(0, 0, bufferSizeForAck);
 		ackmanager.snd_fds[i] = fd;	
+
+
+		printf("initialization netmanager recv_fds[%d] = %d, port = %d\n", i, fd, ackPorts[myhostid][i]);
+
+
 	}
 }
 
@@ -289,6 +299,10 @@ int sendMsg(mimsg_t *msg){
 		dest.sin_family = AF_INET;
 		inet_pton(AF_INET, hosts[to].address, &(dest.sin_addr.s_addr));
 		dest.sin_port = dataPorts[to][from];
+
+
+		printf("send msg from %d to %d, dest ip = %s, dest port num = %d\n", from, to, hosts[to].address, dest.sin_port);
+
 
 		int retryNum = 0;
 		int success = 0;
