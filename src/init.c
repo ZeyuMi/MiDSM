@@ -20,7 +20,14 @@ void mi_init(int argc, char **argv){
 	}
 	initLocalEnv();
 	if(myhostid == 0){
+		printf("node 0 is starting other node...\n");
 		startNodePrograms(argc, argv);
+		while(1)
+			;
+	}else{
+		printf("node 1 has been started...\n");
+		while(1)
+			;
 	}	
 }
 
