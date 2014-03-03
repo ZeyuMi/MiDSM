@@ -25,8 +25,9 @@ void mi_init(int argc, char **argv){
 		while(1)
 			;
 	}else{
-		fprintf(stderr, "node 1 has been started...\n");
-		exit(1);
+		printf( "node 1 has been started...\n");
+		while(1)
+			;
 	}	
 }
 
