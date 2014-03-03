@@ -48,9 +48,9 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
 					}
 					int seqno = msg->seqno;
-					if(seqno > datamanager.recv_seqs[i]){
+					if(seqno == datamanager.recv_seqs[i]){
 						msgEnqueue(1, msg);	
-						datamanager.recv_seqs[i] = seqno;
+						(datamanager.recv_seqs[i])++;
 					}	
 					freeMsg(msg);
 				}
@@ -307,6 +307,7 @@ int sendMsg(mimsg_t *msg){
 	if(msg == NULL || msg->from != myhostid || msg->to == -1 || msg->command == -1){
 		return -1;
 	}
+	msg->seqno = datamanager.snd_seqs[msg->to];
 	msgEnqueue(0, msg);
 	while(sndQueueSize > 0){
 		mimsg_t *m = queueTop(0);
@@ -317,15 +318,11 @@ int sendMsg(mimsg_t *msg){
 		inet_pton(AF_INET, hosts[to].address, &(dest.sin_addr.s_addr));
 		dest.sin_port = dataPorts[to][from];
 
-
-
-
 		int retryNum = 0;
 		int success = 0;
 		while((retryNum < MAX_RETRY_NUM) && (success != 1)){
 
 			printf("send msg from %d to %d, dest ip = %s, dest port num = %d\n", from, to, hosts[to].address, dest.sin_port);
-
 
 			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, (struct sockaddr *)&dest, sizeof(dest));
 
@@ -356,6 +353,7 @@ int sendMsg(mimsg_t *msg){
 		if(success != 1){
 			fprintf(stderr, "msg from %d to %d does not receive ack %d\n", m->from, m->to, m->seqno);
 		}
+		(datamanager.snd_seqs[msg->to])++;
 		msgDequeue(0);
 	}
 	return 0;

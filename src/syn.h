@@ -5,10 +5,10 @@
 
 #define LOCK_NUM 1024
 
-typedef struct {
+typedef struct miAcquirer{
 		int hostid;
-		acquirer_t *next;
-	} acquirer_t;
+		struct miAcquirer *next;
+	}acquirer_t;
 typedef struct {
 		int state;
 		int lasthostid;
@@ -27,6 +27,6 @@ void handleExitBarrierMsg(mimsg_t *msg);
 void handleGrantMsg(mimsg_t *msg);
 int graspLock(int lockno, int hostid);
 void grantLock(int lockno, int hostid);
-int freeLock(int lockno, int hostid);
+int freeLock(int lockno);
 int checkBarrierFLags();
 #endif
