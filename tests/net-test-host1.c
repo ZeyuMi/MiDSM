@@ -6,6 +6,7 @@
 
 
 int myhostid;
+int hostnum;
 host_t hosts[MAX_HOST_NUM];
 void wait(){
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -25,7 +26,7 @@ int main(){
 	strcpy(hosts[0].username, "yating");
 	strcpy(hosts[1].address, "192.168.48.40");
 	strcpy(hosts[1].username, "zeyu");
-
+	hostnum = 2;
 	wait();
 
 	initnet();

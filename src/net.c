@@ -2,6 +2,7 @@
 #include "util.h"
 
 extern int myhostid;
+extern int hostnum;
 extern host_t hosts[MAX_HOST_NUM];
 
 mimsg_t sndQueue[MAX_QUEUE_SIZE];
@@ -328,42 +329,45 @@ int sendMsg(mimsg_t *msg){
 			if(size == -1){
 				printf("error occur when sending data\n");
 			}
-			fd_set set;
-			FD_ZERO(&set);
-			int fd = ackmanager.recv_fds[to]; 
-			FD_SET(fd, &set);
-			struct timeval polltime;
-			polltime.tv_sec = 1;
-			polltime.tv_usec = 0;
-		
-			sigset_t blset;
-			sigset_t oldset;
-			sigemptyset(&blset);
-			sigaddset(&blset, SIGIO);
-			sigprocmask(SIG_BLOCK, &blset, &oldset);
 
+			unsigned long mytimeout = 0;
+			if (hostnum <= 8){
+         			mytimeout = TIMEOUT - myhostid * 100;
+			} else{
+         			mytimeout = TIMEOUT - myhostid * 50;
+      			}
+			unsigned long start = current_time();
+      			unsigned long end = start + mytimeout;
+			while((current_time() < end) && (success != 1)){
+				fd_set set;
+				FD_ZERO(&set);
+				int fd = ackmanager.recv_fds[to]; 
+				FD_SET(fd, &set);
+				struct timeval polltime;
+				polltime.tv_sec = 0;
+				polltime.tv_usec = 0;
+				int num = select(fd+1, &set, NULL, NULL, &polltime);
 
-			int num = select(fd+1, &set, NULL, NULL, &polltime);
-
-			sigprocmask(SIG_UNBLOCK, &oldset, NULL);
-
-			if(num == -1){
-				printf("error: %s\n", strerror(errno));
+				if(num > 0){
+					mimsg_t *ackmsg = newMsg();
+					int seqno = 0;
+					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
+					if(seqno == m->seqno){
+						(datamanager.snd_seqs[msg->to])++;
+						success = 1;
+					}	
+				}
+	
+				if(num == -1){
+					printf("error: %s\n", strerror(errno));
+				}
 			}
-			if(num > 0){
-				mimsg_t *ackmsg = newMsg();
-				int seqno = 0;
-				int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
-				if(seqno == m->seqno){
-					success = 1;
-				}	
-			}
+			
 			retryNum++;
 		}
 		if(success != 1){
 			fprintf(stderr, "msg from %d to %d does not receive ack %d\n", m->from, m->to, m->seqno);
 		}
-		(datamanager.snd_seqs[msg->to])++;
 		msgDequeue(0);
 	}
 	return 0;

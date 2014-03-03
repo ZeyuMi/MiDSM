@@ -20,6 +20,7 @@
 #define MAX_QUEUE_SIZE MAX_HOST_NUM
 #define BASEPORT 12345
 #define MAX_RETRY_NUM 64
+#define TIMEOUT 1000
 
 #define TEST_COMMAND 0
 typedef struct {
