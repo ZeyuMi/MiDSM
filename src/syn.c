@@ -69,6 +69,9 @@ void handleGrantMsg(mimsg_t *msg){
 }
 
 
+/**
+* 1
+**/
 int graspLock(int lockno, int hostid){
 
 }
@@ -79,6 +82,9 @@ void grantLock(int lockno, int hostid){
 }
 
 
+/**
+* 2
+**/
 int freeLock(int lockno, int hostid){
 
 }
