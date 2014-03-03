@@ -48,9 +48,9 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
 					}
 					int seqno = msg->seqno;
-					if(seqno > datamanager.recv_seqs[i]){
+					if(seqno == datamanager.recv_seqs[i]){
 						msgEnqueue(1, msg);	
-						datamanager.recv_seqs[i] = seqno;
+						datamanager.recv_seqs[i] = seqno+1;
 					}	
 					freeMsg(msg);
 				}
@@ -336,7 +336,18 @@ int sendMsg(mimsg_t *msg){
 			struct timeval polltime;
 			polltime.tv_sec = 1;
 			polltime.tv_usec = 0;
+		
+			sigset_t blset;
+			sigset_t oldset;
+			sigemptyset(&blset);
+			sigaddset(&blset, SIGIO);
+			sigprocmask(SIG_BLOCK, &blset, &oldset);
+
+
 			int num = select(fd+1, &set, NULL, NULL, &polltime);
+
+			sigprocmask(SIG_UNBLOCK, &oldset, NULL);
+
 			if(num == -1){
 				printf("error: %s\n", strerror(errno));
 			}
