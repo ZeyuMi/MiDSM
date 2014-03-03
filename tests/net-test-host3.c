@@ -3,10 +3,11 @@
 #include <stdio.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include "../src/net.h"
 
 
-extern int myhostid;
-extern host_t hosts[MAX_HOST_NUM];
+int myhostid;
+host_t hosts[MAX_HOST_NUM];
 
 void notify(){
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
