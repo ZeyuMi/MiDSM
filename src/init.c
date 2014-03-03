@@ -25,7 +25,7 @@ void mi_init(int argc, char **argv){
 		while(1)
 			;
 	}else{
-		printf("node 1 has been started...\n");
+		fprintf(stderr, "node 1 has been started...\n");
 		while(1)
 			;
 	}	
@@ -37,18 +37,27 @@ void mi_init(int argc, char **argv){
 **/
 void startNodePrograms(int argc, char **argv){
 	int i;
-	char remoteCommand[WORDSIZE*2];
+	char wd[WORDSIZE];
+	char address[WORDSIZE];
+	char cmd[WORDSIZE*2];
 	for(i = 1; i < hostnum; i++){
-		memset(remoteCommand, 0, WORDSIZE*2);
-		strcat(remoteCommand, "ssh -fX ");
-		strcat(remoteCommand, hosts[i].username);
-		strcat(remoteCommand, "@");
-		strcat(remoteCommand, hosts[i].address);
-		strcat(remoteCommand, " /home/");
-		strcat(remoteCommand, hosts[i].username);
-		strcat(remoteCommand, "/Desktop/MiDSM/src/");
-		strcat(remoteCommand, (*argv)+2);
-		system(remoteCommand);	
+		memset(wd, 0, WORDSIZE);
+		memset(address, 0, WORDSIZE);
+		memset(cmd, 0, WORDSIZE*2);
+			
+		strcat(wd, "/home/");
+		strcat(wd, hosts[i].username);
+		strcat(wd, "/Desktop/MiDSM/src/");
+
+		strcat(address, hosts[i].username);
+		strcat(address, "@");
+		strcat(address, hosts[i].address);
+
+		sprintf(cmd, "ssh %s \"cd %s; ", address, wd);	
+
+		strcat(cmd, *argv);
+		strcat(cmd, "\"");
+		system(cmd);
 	}
 }
 
