@@ -28,5 +28,5 @@ void handleGrantMsg(mimsg_t *msg);
 int graspLock(int lockno, int hostid);
 void grantLock(int lockno, int hostid);
 int freeLock(int lockno);
-int checkBarrierFLags();
+int checkBarrierFlags();
 #endif

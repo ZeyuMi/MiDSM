@@ -23,6 +23,13 @@
 #define TIMEOUT 1000
 
 #define TEST_COMMAND 0
+#define ACQ 1
+#define RLS 2
+#define GRANT 3
+#define ENTER_BARRIER 4
+#define EXIT_BARRIER 5
+
+
 typedef struct {
 		int from;
 		int to;

@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "syn.h"
 
+extern int myhostid;
+extern int hostnum;
+
 milock_t locks[LOCK_NUM];
 int waitFlag;
 int myLocks[LOCK_NUM];
@@ -28,17 +31,26 @@ void initsyn(){
 }
 
 
+/** 
+* 1
+**/
 int mi_lock(int lockno){
 
 
 }
 
 
+/**
+* 2
+**/
 int mi_unlock(int lockno){
 
 }
 
 
+/** 
+* 3
+**/
 void mi_barrier(){
 
 }
@@ -111,10 +123,29 @@ int graspLock(int lockno, int hostid){
 
 
 /** 
-* 2
+* send GRANT msg to hostid, telling it that lockno belongs to it
+* parameters
+*	lockno : index of lock in locks array
+*	hostid : the id of host which will be received GRANT msg
 **/
 void grantLock(int lockno, int hostid){
-
+	if((lockno < -1) || (lockno > 1023) || (hostid < 0) || (hostid >= hostnum)){
+		return;
+	}
+	if(hostid == myhostid){
+		return;
+	}
+	if((lockno % hostnum) != myhostid){
+		return;
+	}
+	mimsg_t *msg = nextFreeMsgInQueue(0);
+	msg->from = myhostid;
+	msg->to = hostid;
+	msg->command = GRANT;
+	char buffer[20];
+	sprintf(buffer, "%d", lockno);
+	apendMsgData(msg, buffer, sizeof(int));
+	sendMsg(msg);
 }
 
 
@@ -154,9 +185,30 @@ int freeLock(int lockno){
 
 
 /**
-*   
+* if all hosts enter barrier, send msg to them which tells them exit barrier.
+* return value
+*	 0 --- success
+*	-1 --- not all elements of barrierFlags are 1    
+*	-2 --- this node has no right to manipulate barriers
 **/
-int checkBarrierFLags(){
-
+int checkBarrierFlags(){
+	if(myhostid != 0){
+		return -2;
+	}
+	int i;
+	for(i = 0; i < hostnum; i++){
+		if(barrierFlags[i] != 1){
+			return -1;
+		}
+	}
+	mimsg_t *msg;
+	for(i = 1; i < hostnum; i++){
+		msg = nextFreeMsgInQueue(0);
+		msg->from = 0;
+		msg->to = i;
+		msg->command = EXIT_BARRIER;
+		sendMsg(msg);
+	}
+	return 0;
 }
 
