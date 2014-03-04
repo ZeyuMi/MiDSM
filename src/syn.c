@@ -110,6 +110,9 @@ int graspLock(int lockno, int hostid){
 }
 
 
+/** 
+* 2
+**/
 void grantLock(int lockno, int hostid){
 
 }
@@ -150,6 +153,9 @@ int freeLock(int lockno){
 }
 
 
+/**
+* 
+**/
 int checkBarrierFLags(){
 
 }
