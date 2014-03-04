@@ -35,7 +35,7 @@ int main(){
 	mimsg_t *m1;
 	char *s1 = "test from 1!";
 	int i;
-	for(i = 0; i < 100; i++){
+	for(i = 0; i < 1000000; i++){
 		m1 = nextFreeMsgInQueue(0);
 		m1->from = 1;
 		m1->to = 0;
