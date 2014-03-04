@@ -31,24 +31,18 @@ int main(){
 
 	initnet();
 
-	mimsg_t *m1 = newMsg();
-	m1->from = 0;
-	m1->to = 1;
-	m1->command = TEST_COMMAND;
+	mimsg_t *m1;
 	char *s1 = "test from 0!";
-	apendMsgData(m1, s1, strlen(s1)+1);
-	sendMsg(m1);
-	freeMsg(m1);
-
-	m1 = newMsg();
-	m1->from = 0;
-	m1->to = 1;
-	m1->command = TEST_COMMAND;
-	apendMsgData(m1, s1, strlen(s1)+1);
-	sendMsg(m1);
-	freeMsg(m1);
-
-	
+	int i;
+	for(i = 0; i < 100; i++){
+		m1 = newMsg();
+		m1->from = 0;
+		m1->to = 1;
+		m1->command = TEST_COMMAND;
+		apendMsgData(m1, s1, strlen(s1)+1);
+		sendMsg(m1);
+		freeMsg(m1);
+	}
 	while(1)
 		;
 }

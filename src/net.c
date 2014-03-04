@@ -322,7 +322,7 @@ int sendMsg(mimsg_t *msg){
 		int success = 0;
 		while((retryNum < MAX_RETRY_NUM) && (success != 1)){
 
-			printf("send msg from %d to %d, dest ip = %s, dest port num = %d\n", from, to, hosts[to].address, dest.sin_port);
+			printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port);
 
 			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, (struct sockaddr *)&dest, sizeof(dest));
 
@@ -355,6 +355,7 @@ int sendMsg(mimsg_t *msg){
 					if(seqno == m->seqno){
 						(datamanager.snd_seqs[msg->to])++;
 						success = 1;
+						printf("seqno %d received ack!\n", seqno);
 					}	
 				}
 			}
