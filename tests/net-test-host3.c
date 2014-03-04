@@ -7,6 +7,7 @@
 
 
 int myhostid;
+int hostnum;
 host_t hosts[MAX_HOST_NUM];
 
 void notify(){
@@ -26,7 +27,7 @@ int main(){
 	strcpy(hosts[0].username, "yating");
 	strcpy(hosts[1].address, "192.168.48.40");
 	strcpy(hosts[1].username, "zeyu");
-
+	hostnum = 2;
 	notify();
 
 	initnet();

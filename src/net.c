@@ -357,10 +357,6 @@ int sendMsg(mimsg_t *msg){
 						success = 1;
 					}	
 				}
-	
-				if(num == -1){
-					printf("error: %s\n", strerror(errno));
-				}
 			}
 			
 			retryNum++;
