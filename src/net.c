@@ -358,7 +358,6 @@ int sendMsg(mimsg_t *msg){
 			unsigned long start = current_time();
       			unsigned long end = start + mytimeout;
 			while((current_time() < end) && (success != 1)){
-				printf("retryNum = %d, start = %ld, end = %ld, mytimeout = %ld\n", retryNum, start, end, mytimeout);
 				fd_set set;
 				FD_ZERO(&set);
 				int fd = ackmanager.recv_fds[to]; 
