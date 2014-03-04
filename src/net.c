@@ -59,7 +59,13 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 					int s = sizeof(addr);
 					printf("before recvFrom\n");
 					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0,(struct sockaddr *) &addr, &s);
+					if(size == -1){
+						printf("err: %s\n", strerror(errno));
+					}
+
+
 					printf("after recvFrom size = %d\n", size);
+					
 
 					int seqno = msg->seqno;
 					if((size > 0) && (seqno == datamanager.recv_seqs[i])){
