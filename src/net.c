@@ -19,6 +19,8 @@ void testCommand(mimsg_t *msg){
 
 void sigio_handler(int sigio, siginfo_t *info, void *context){
 	printf("entering into sigio_handler\n");
+
+	printf("before unblock\n");
 	sigset_t blset;
 	sigset_t oldset;
 	sigemptyset(&blset);
@@ -29,7 +31,9 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 	struct timeval polltime;
 	polltime.tv_sec = 0;
 	polltime.tv_usec = 0;
+	printf("before select\n");
 	int num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
+	printf("after select\n");
 	if(num > 0){
 		int i;
 		for(i = 0; i < MAX_HOST_NUM; i++){
@@ -64,6 +68,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 	
 	sigprocmask(SIG_UNBLOCK, &oldset, NULL);
 
+	printf("after unblock\n");
 	while(recvQueueSize > 0){
 		mimsg_t *msg = queueTop(1);
 		dispatchMsg(msg);
