@@ -43,12 +43,11 @@ typedef struct {
 
 void initnet();
 int createSocket(short int port, int isRecv, int bufSize);
-int msgEnqueue(int type, mimsg_t *msg);
+int msgEnqueue(int type);
+mimsg_t *nextFreeMsgInQueue(int type);
 mimsg_t *queueTop(int type);
 int msgDequeue(int type);
 void dispatchMsg(mimsg_t *msg);
 int sendMsg(mimsg_t *msg);
 int apendMsgData(mimsg_t *msg, char *data, int len);
-mimsg_t *newMsg();
-int freeMsg(mimsg_t *msg);
 #endif

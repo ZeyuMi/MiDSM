@@ -53,8 +53,8 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 				printf("after read recv_fds\n");
 				if(FD_ISSET(fd, &readset)){
 					printf("entering fd_isset\n");
-					mimsg_t *msg = newMsg();
-					printf("newMsg successfully\n");
+					mimsg_t *msg = nextFreeMsgInQueue(1);
+					printf("nextFreeMsgInQueue successfully\n");
 					struct sockaddr_in addr;	
 					int s = sizeof(addr);
 					printf("before recvFrom\n");
@@ -63,7 +63,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 
 					int seqno = msg->seqno;
 					if((size > 0) && (seqno == datamanager.recv_seqs[i])){
-						msgEnqueue(1, msg);	
+						msgEnqueue(1);	
 						datamanager.recv_seqs[i] = seqno+1;
 						struct sockaddr_in dest;
 						dest.sin_family = AF_INET;
@@ -72,7 +72,6 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 						sendto(ackmanager.snd_fds[i], &(msg->seqno), 4, 0, (struct sockaddr *)&dest, sizeof(dest));
 						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
 					}
-					freeMsg(msg);
 				}
 			}
 		}
@@ -215,28 +214,73 @@ int createSocket(short int port, int isRecv, int bufSize){
 *	-1 --- parameters error
 *	-2 --- queue is full
 **/
-int msgEnqueue(int type, mimsg_t *msg){
-	if(sndQueueSize == MAX_QUEUE_SIZE){
-		return -2;
-	}
-	if((type != 0 && type != 1) || msg == NULL){
+int msgEnqueue(int type){
+	if((type != 0) && (type != 1)){
 		return -1;	
 	}
 	if(type == 0){
-		memcpy(&(sndQueue[sndTail]), msg, sizeof(mimsg_t));
-		sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
-		sndQueueSize++;
+		if(sndQueueSize == MAX_QUEUE_SIZE){
+			return -2;
+		}else{
+			sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
+			sndQueueSize++;
+		}
 	}else{
-		memcpy(&(recvQueue[recvTail]), msg, sizeof(mimsg_t));
-		recvTail = (recvTail + 1) % MAX_QUEUE_SIZE;	
-		recvQueueSize++;
+		if(recvQueueSize == MAX_QUEUE_SIZE){
+			return -2;
+		}else{
+			recvTail = (recvTail + 1) % MAX_QUEUE_SIZE;	
+			recvQueueSize++;
+		}
 	}
 	return 0;
 }
 
 
 /** 
-* according to the paramter type, return the pointer to the head of a queue* parameters
+* according to the paramter type, return the pointer to the free element after tail in a queue
+* parameters
+*	type : 0 indicates sndQueue; 1 indicates recvQueue
+* return value
+*	NOT NULL --- success
+*	NULL     --- queue is full or the value of type is wrong
+*
+**/
+mimsg_t *nextFreeMsgInQueue(int type){
+	if((type != 0) && (type != 1)){
+		return NULL;
+	}
+	if(type == 0){
+		if(sndQueueSize == MAX_QUEUE_SIZE){
+			return NULL;
+		}else{
+			memset(&(sndQueue[sndHead]), 0, sizeof(mimsg_t));
+			sndQueue[sndHead].from = -1;
+			sndQueue[sndHead].to = -1;
+			sndQueue[sndHead].command = -1;
+			sndQueue[sndHead].size = 0;
+			sndQueue[sndHead].seqno = -1;
+			return &(sndQueue[sndHead]);
+		}
+	}else{
+		if(recvQueueSize == MAX_QUEUE_SIZE){
+			return NULL;
+		}else{
+			memset(&(recvQueue[recvHead]), 0, sizeof(mimsg_t));
+			recvQueue[recvHead].from = -1;
+			recvQueue[recvHead].to = -1;
+			recvQueue[recvHead].command = -1;
+			recvQueue[recvHead].size = 0;
+			recvQueue[recvHead].seqno = -1;
+			return &(recvQueue[recvHead]);
+		}
+	}	
+}
+
+
+/** 
+* according to the paramter type, return the pointer to the head of a queue
+* parameters
 *	type : 0 indicates sndQueue; 1 indicates recvQueue
 * return value
 *	NOT NULL --- success
@@ -327,7 +371,7 @@ int sendMsg(mimsg_t *msg){
 		return -1;
 	}
 	msg->seqno = datamanager.snd_seqs[msg->to];
-	msgEnqueue(0, msg);
+	msgEnqueue(0);
 	while(sndQueueSize > 0){
 		mimsg_t *m = queueTop(0);
 		int to = m->to;
@@ -368,7 +412,7 @@ int sendMsg(mimsg_t *msg){
 				int num = select(fd+1, &set, NULL, NULL, &polltime);
 
 				if(num > 0){
-					mimsg_t *ackmsg = newMsg();
+					mimsg_t *ackmsg = malloc(sizeof(mimsg_t));
 					int seqno = 0;
 					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
 					if(seqno == m->seqno){
@@ -376,6 +420,7 @@ int sendMsg(mimsg_t *msg){
 						success = 1;
 						printf("seqno %d received ack!\n", seqno);
 					}	
+					free(ackmsg);
 				}
 			}
 			
@@ -411,50 +456,3 @@ int apendMsgData(mimsg_t *msg, char *data, int len){
 	msg->size += len;
 	return 0;
 }
-
-
-/**
-* create a new msg and return its pointer
-* return value
-*	NOT NULL --- success
-*	NULL     --- malloc failure
-**/
-mimsg_t *newMsg(){
-	printf("entering newMsg\n");
-	disableSigio();
-	mimsg_t *msg = malloc(sizeof(mimsg_t));
-	enableSigio();
-	printf("after malloc\n");
-	if(msg == NULL){
-		printf("newMsg return null\n");
-		return NULL;
-	}	
-	memset((void *)msg, 0, sizeof(mimsg_t));	
-	printf("after memset\n");
-	msg->from = -1;
-	msg->to = -1;
-	msg->command = -1;
-	msg->size = 0;
-	msg->seqno = 0;
-	return msg;
-}
-
-
-/**
-* free the memory area pointed by a mimsg_t pointer
-* parameters
-*	msg : pointing to the area to be freed
-* return value
-*	 0 --- success
-*	-1 --- msg == NULL 	
-**/
-int freeMsg(mimsg_t *msg){
-	if(msg == NULL){
-		return -1;
-	}else{
-		free(msg);
-		return 0;
-	}	
-}
-
-
