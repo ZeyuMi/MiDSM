@@ -86,13 +86,13 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		polltime.tv_usec = 0;
 		num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
 	}
-	enableSigio();
 	printf("after unblock\n");
 	while(recvQueueSize > 0){
 		mimsg_t *msg = queueTop(1);
 		dispatchMsg(msg);
 		msgDequeue(1);
 	}
+	enableSigio();
 	
 }
 
