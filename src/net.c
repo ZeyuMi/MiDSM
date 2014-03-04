@@ -18,7 +18,7 @@ void testCommand(mimsg_t *msg){
 }
 
 void sigio_handler(int sigio, siginfo_t *info, void *context){
-//	printf("entering into sigio_handler\n");
+	printf("entering into sigio_handler\n");
 	sigset_t blset;
 	sigset_t oldset;
 	sigemptyset(&blset);
