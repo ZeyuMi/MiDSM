@@ -187,6 +187,7 @@ static char *test_grantLock(){
 	return 0;
 }
 
+
 static char *all_tests(){
 	mu_run_test(test_initsyn);
 	mu_run_test(test_graspLock);

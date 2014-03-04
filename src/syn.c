@@ -32,19 +32,88 @@ void initsyn(){
 
 
 /** 
-* 1
+* user will use this procedure to acuquire a lock
+* parameters
+*	lockno : index of lock in locks array
+* return value
+*	 0 --- success
+*	-1 --- parameter error
+*	-2 --- user has already owned this lock
 **/
 int mi_lock(int lockno){
-
-
+	if((lockno < 0) || (lockno >= LOCK_NUM)){
+		return -1;
+	}
+	if(myLocks[lockno] == 1){
+		return -2;
+	}
+	if((lockno % hostnum) == myhostid){
+		int result = graspLock(lockno, myhostid);
+		if(result == -2){
+			waitFlag = 1;
+			while(waitFlag)
+				;
+			return 0;
+		}else{
+			myLocks[lockno] = 1;
+			return 0;
+		}
+	}else{
+		mimsg_t *msg = nextFreeMsgInQueue(0);
+		msg->from = myhostid;
+		msg->to = lockno % hostnum;
+		msg->command = ACQ;
+		char buffer[20];
+		sprintf(buffer, "%d", lockno);
+		apendMsgData(msg, buffer, sizeof(int));
+		sendMsg(msg);
+		waitFlag = 1;
+		while(waitFlag)
+			;
+		return 0;
+	}
 }
 
 
 /**
-* 2
+* user will use this procedure to release a lock
+* parameters
+*	lockno : index of lcok in locks array
+* return value
+*	 0 --- success
+*	-1 --- parameter error
+*	-2 --- use does not own this lock 
 **/
 int mi_unlock(int lockno){
-
+	if((lockno < 0) || (lockno >= LOCK_NUM)){
+		return -1;
+	}
+	if(myLocks[lockno] == 0){
+		return -2;
+	}
+	if((lockno % hostnum) == myhostid){
+		myLocks[lockno] = 1;
+		int result = freeLock(lockno, myhostid);	
+		if(result == -4){
+			return 0;
+		}else if((result >= 0) && (result != myhostid)){
+			grantLock(lockno, result);
+			return 0;
+		}else{
+			fprintf(stderr, "error occured in mi_lock with result = %d\n",result);
+			return 0;
+		}
+	}else{
+		mimsg_t *msg = nextFreeMsgInQueue(0);
+		msg->from = myhostid;
+		msg->to = lockno % hostnum;
+		msg->command = RLS;
+		char buffer[20];
+		sprintf(buffer, "%d", lockno);
+		apendMsgData(msg, buffer, sizeof(int));
+		sendMsg(msg);
+		return 0;
+	}
 }
 
 
@@ -129,7 +198,7 @@ int graspLock(int lockno, int hostid){
 *	hostid : the id of host which will be received GRANT msg
 **/
 void grantLock(int lockno, int hostid){
-	if((lockno < -1) || (lockno > 1023) || (hostid < 0) || (hostid >= hostnum)){
+	if((lockno < -1) || (lockno >= LOCK_NUM) || (hostid < 0) || (hostid >= hostnum)){
 		return;
 	}
 	if(hostid == myhostid){
