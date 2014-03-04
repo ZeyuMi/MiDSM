@@ -378,6 +378,8 @@ int sendMsg(mimsg_t *msg){
 	}
 	msg->seqno = datamanager.snd_seqs[msg->to];
 	msgEnqueue(0);
+	
+	printf("before empty sndQueue\n");
 	while(sndQueueSize > 0){
 		mimsg_t *m = queueTop(0);
 		int to = m->to;
@@ -393,7 +395,9 @@ int sendMsg(mimsg_t *msg){
 
 			printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port);
 
+			printf("before sendto\n");
 			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, (struct sockaddr *)&dest, sizeof(dest));
+			printf("after sendto\n");
 
 			if(size == -1){
 				printf("error occur when sending data\n");
@@ -407,6 +411,7 @@ int sendMsg(mimsg_t *msg){
       			}
 			unsigned long start = current_time();
       			unsigned long end = start + mytimeout;
+			printf("before try\n");
 			while((current_time() < end) && (success != 1)){
 				fd_set set;
 				FD_ZERO(&set);
@@ -429,7 +434,7 @@ int sendMsg(mimsg_t *msg){
 					free(ackmsg);
 				}
 			}
-			
+			printf("after try\n");
 			retryNum++;
 		}
 		if(success != 1){
@@ -437,6 +442,7 @@ int sendMsg(mimsg_t *msg){
 		}
 		msgDequeue(0);
 	}
+	printf("after empty sndQueue\n");
 	return 0;
 }
 
