@@ -34,16 +34,20 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 	printf("before select\n");
 	int num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
 	printf("after select\n");
+	printf("select num %d \n", num);
 	if(num > 0){
 		int i;
 		for(i = 0; i < MAX_HOST_NUM; i++){
 			if(i != myhostid){
+				printf("receive for %d \n", i);
 				int fd = datamanager.recv_fds[i];
 				if(FD_ISSET(fd, &readset)){
 					mimsg_t *msg = newMsg();
 					struct sockaddr_in addr;	
 					int s = sizeof(addr);
+					printf("before recvFrom\n", i);
 					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0,(struct sockaddr *) &addr, &s);
+					printf("after recvFrom\n", i);
 
 					int seqno = msg->seqno;
 					if((size > 0) && (seqno == datamanager.recv_seqs[i])){
