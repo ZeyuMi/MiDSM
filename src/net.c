@@ -13,20 +13,28 @@ int sndHead, sndTail, sndQueueSize, recvHead, recvTail, recvQueueSize;
 netmanager datamanager;
 netmanager ackmanager;
 
+
+sigset_t oldset;
+void disableSigio(){
+	sigset_t blset;
+	sigemptyset(&blset);
+	sigaddset(&blset, SIGIO);
+	sigprocmask(SIG_BLOCK, &blset, &oldset);
+}
+
+void enableSigio(){
+	sigprocmask(SIG_UNBLOCK, &oldset, NULL);
+}
+
+
 void testCommand(mimsg_t *msg){
 	printf("seqno %d : msg from %d to %d with command %d received!\n", msg->seqno, msg->from, msg->to, msg->command);
 }
 
 void sigio_handler(int sigio, siginfo_t *info, void *context){
 	printf("entering into sigio_handler\n");
-
-	printf("before unblock\n");
-	sigset_t blset;
-	sigset_t oldset;
-	sigemptyset(&blset);
-	sigaddset(&blset, SIGIO);
-	sigprocmask(SIG_BLOCK, &blset, &oldset);
-
+	printf("before block\n");
+	disableSigio();
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
 	polltime.tv_sec = 0;
@@ -73,9 +81,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		polltime.tv_usec = 0;
 		num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
 	}
-	
-	sigprocmask(SIG_UNBLOCK, &oldset, NULL);
-
+	enableSigio();
 	printf("after unblock\n");
 	while(recvQueueSize > 0){
 		mimsg_t *msg = queueTop(1);
@@ -416,7 +422,9 @@ int apendMsgData(mimsg_t *msg, char *data, int len){
 **/
 mimsg_t *newMsg(){
 	printf("entering newMsg\n");
+	disableSigio();
 	mimsg_t *msg = malloc(sizeof(mimsg_t));
+	enableSigio();
 	printf("after malloc\n");
 	if(msg == NULL){
 		printf("newMsg return null\n");
