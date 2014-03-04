@@ -13,7 +13,6 @@ int sndHead, sndTail, sndQueueSize, recvHead, recvTail, recvQueueSize;
 netmanager datamanager;
 netmanager ackmanager;
 
-
 sigset_t oldset;
 void disableSigio(){
 	sigset_t blset;
@@ -421,17 +420,15 @@ int sendMsg(mimsg_t *msg){
 				polltime.tv_sec = 0;
 				polltime.tv_usec = 0;
 				int num = select(fd+1, &set, NULL, NULL, &polltime);
-
 				if(num > 0){
-					mimsg_t *ackmsg = malloc(sizeof(mimsg_t));
-					int seqno = 0;
+					int seqno = 0;	
+					printf("before select\n");
 					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
 					if(seqno == m->seqno){
 						(datamanager.snd_seqs[msg->to])++;
 						success = 1;
 						printf("seqno %d received ack!\n", seqno);
 					}	
-					free(ackmsg);
 				}
 			}
 			printf("after try\n");
