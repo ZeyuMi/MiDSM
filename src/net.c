@@ -415,11 +415,15 @@ int apendMsgData(mimsg_t *msg, char *data, int len){
 *	NULL     --- malloc failure
 **/
 mimsg_t *newMsg(){
+	printf("entering newMsg\n");
 	mimsg_t *msg = malloc(sizeof(mimsg_t));
+	printf("after malloc\n");
 	if(msg == NULL){
+		printf("newMsg return null\n");
 		return NULL;
 	}	
 	memset((void *)msg, 0, sizeof(mimsg_t));	
+	printf("after memset\n");
 	msg->from = -1;
 	msg->to = -1;
 	msg->command = -1;
