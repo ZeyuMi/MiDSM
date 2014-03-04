@@ -48,18 +48,18 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		for(i = 0; i < MAX_HOST_NUM; i++){
 			if(i != myhostid){
 				printf("receive for %d \n", i);
-				printf("before read recv_fds\n", i);
+				printf("before read recv_fds\n");
 				int fd = datamanager.recv_fds[i];
-				printf("after read recv_fds\n", i);
+				printf("after read recv_fds\n");
 				if(FD_ISSET(fd, &readset)){
-					printf("entering fd_isset\n", i);
+					printf("entering fd_isset\n");
 					mimsg_t *msg = newMsg();
-					printf("newMsg successfully\n", i);
+					printf("newMsg successfully\n");
 					struct sockaddr_in addr;	
 					int s = sizeof(addr);
-					printf("before recvFrom\n", i);
+					printf("before recvFrom\n");
 					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0,(struct sockaddr *) &addr, &s);
-					printf("after recvFrom\n", i);
+					printf("after recvFrom\n");
 
 					int seqno = msg->seqno;
 					if((size > 0) && (seqno == datamanager.recv_seqs[i])){
