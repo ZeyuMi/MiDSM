@@ -154,7 +154,7 @@ int freeLock(int lockno){
 
 
 /**
-* 
+*   
 **/
 int checkBarrierFLags(){
 
