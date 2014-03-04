@@ -27,7 +27,7 @@ void enableSigio(){
 
 
 void testCommand(mimsg_t *msg){
-	printf("seqno %d : msg from %d to %d with command %d received!\n", msg->seqno, msg->from, msg->to, msg->command);
+	//printf("seqno %d : msg from %d to %d with command %d received!\n", msg->seqno, msg->from, msg->to, msg->command);
 }
 
 void sigio_handler(int sigio, siginfo_t *info, void *context){
