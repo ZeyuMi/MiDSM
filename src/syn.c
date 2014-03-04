@@ -18,6 +18,7 @@ void initsyn(){
 	int i;
 	for(i = 0; i < LOCK_NUM; i++){
 		locks[i].state = FREE;
+		locks[i].owner = -1;
 		locks[i].lasthostid = -1;
 		locks[i].waitingList = NULL;
 	}
@@ -94,7 +95,7 @@ int mi_unlock(int lockno){
 	if((lockno % hostnum) == myhostid){
 		myLocks[lockno] = 1;
 		int result = freeLock(lockno, myhostid);	
-		if(result == -4){
+		if(result == -5){
 			return 0;
 		}else if((result >= 0) && (result != myhostid)){
 			grantLock(lockno, result);
@@ -118,33 +119,98 @@ int mi_unlock(int lockno){
 
 
 /** 
-* 3
+* user will use this procedure to enter barrier
 **/
 void mi_barrier(){
-
+	if(myhostid == 0){
+		barrierFlags[0] = 1;
+		int result = checkBarrierFlags();
+		if(result == 0){
+			return;
+		}
+	}else{
+		mimsg_t *msg = nextFreeMsgInQueue(0);
+		msg->from = myhostid;
+		msg->to = 0;
+		msg->command = ENTER_BARRIER;
+		sendMsg(msg);
+	}
+	waitFlag = 1;
+	while(waitFlag)
+		;
+	return;
 }
 
 
+/**
+* dispatchMsg will use this procedure to handle ACQ msg
+* parameters
+*	msg : msg to be handled
+**/
 void handleAcquireMsg(mimsg_t *msg){
-
+	int lockno = strtol(msg->data, NULL, 10);
+	int hostid = msg->from;
+	if((lockno >= 0) && (lockno <= LOCK_NUM)){
+		int result = graspLock(lockno, hostid);
+		if(result == 0){
+			grantLock(lockno, hostid);	
+		}
+	}	
 }
 
 
+/**
+* dispatchMsg will use this procedure to handle RLS msg
+* parameters
+*	msg : msg to be handled
+**/
 void handleReleaseMsg(mimsg_t *msg){
-
+	int lockno = strtol(msg->data, NULL, 10);
+	int hostid = msg->from;
+	if((lockno >= 0) && (lockno <= LOCK_NUM)){
+		int result = freeLock(lockno, hostid);
+		if(result >= 0){
+			if(result == myhostid){
+				waitFlag = 0;
+				myLocks[lockno] = 1;
+			}else{
+				grantLock(lockno, result);	
+			}
+		}
+	}	
 }
 
 
+/**
+* dispatchMsg will use this procedure to handle ENTER_BARRIER msg
+* parameters
+*	msg : msg to be handled
+**/
 void handleEnterBarrierMsg(mimsg_t *msg){
-
+	int hostid = msg->from;
+	barrierFlags[hostid] = 1;
+	int result = checkBarrierFlags();
+	if(result == 0){
+		waitFlag = 0;
+	}
 }
 
 
+/**
+* dispatchMsg will use this procedure to handle EXIT_BARRIER msg
+* parameters
+*	msg : msg to be handled
+**/
 void handleExitBarrierMsg(mimsg_t *msg){
 
 }
 
 
+/**
+* dispatchMsg will use this procedure to handle GRANT msg
+* parameters
+*	msg : msg to be handled
+**/
 void handleGrantMsg(mimsg_t *msg){
 
 }
@@ -160,6 +226,7 @@ void handleGrantMsg(mimsg_t *msg){
 *	-1 --- parameters error
 *	-2 --- this node has no right to manipulate this lock
 *	-3 --- lock is busy
+*	-4 --- this host has already owned this lock
 **/
 int graspLock(int lockno, int hostid){
 	extern hostnum;
@@ -172,8 +239,12 @@ int graspLock(int lockno, int hostid){
 	}
 	if(locks[lockno].state == FREE){
 		locks[lockno].state = LOCKED;
+		locks[lockno].owner = hostid;
 		return 0;
 	}else{
+		if(locks[lockno].owner == hostid){
+			return -4;
+		}
 		acquirer_t *acquirer = malloc(sizeof(acquirer_t));
 		acquirer->next = NULL;
 		acquirer->hostid = hostid;
@@ -227,12 +298,13 @@ void grantLock(int lockno, int hostid){
 *	  -1 --- parameters error
 *	  -2 --- this node has no right to manipulate this lock
 *	  -3 --- the state of this lock is free
-*	  -4 --- no waiting host
+*	  -4 --- this lock does not belong to the host
+*	  -5 --- no waiting host
 **/
-int freeLock(int lockno){
+int freeLock(int lockno, int hostid){
 	extern hostnum;
 	extern myhostid;
-	if(lockno < 0 || lockno >= LOCK_NUM){
+	if(lockno < 0 || lockno >= LOCK_NUM || hostid < 0 || hostid >= hostnum){
 		return -1;
 	}
 	if((lockno % hostnum) != myhostid){
@@ -241,12 +313,21 @@ int freeLock(int lockno){
 	if(locks[lockno].state == FREE){
 		return -3;
 	}else{
+		if(locks[lockno].owner != hostid){
+			return -4;
+		}
 		if(locks[lockno].waitingList == NULL){
 			locks[lockno].state = FREE;
-			return -4;
+			locks[lockno].owner = -1;
+			locks[lockno].lasthostid = hostid;
+			return -5;
 		}else{
 			int waitinghostid = locks[lockno].waitingList->hostid;
+			acquirer_t *temp = locks[lockno].waitingList;
+			free(temp);
 			locks[lockno].waitingList = locks[lockno].waitingList->next;
+			locks[lockno].owner = waitinghostid;
+			locks[lockno].lasthostid = hostid;
 			return waitinghostid;
 		}
 	}
@@ -277,6 +358,9 @@ int checkBarrierFlags(){
 		msg->to = i;
 		msg->command = EXIT_BARRIER;
 		sendMsg(msg);
+	}
+	for(i = 0; i < hostnum; i++){
+		barrierFlags[i] = 0;
 	}
 	return 0;
 }

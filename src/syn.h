@@ -11,6 +11,7 @@ typedef struct miAcquirer{
 	}acquirer_t;
 typedef struct {
 		int state;
+		int owner;
 		int lasthostid;
 		acquirer_t *waitingList;
 	} milock_t;
@@ -27,6 +28,6 @@ void handleExitBarrierMsg(mimsg_t *msg);
 void handleGrantMsg(mimsg_t *msg);
 int graspLock(int lockno, int hostid);
 void grantLock(int lockno, int hostid);
-int freeLock(int lockno);
+int freeLock(int lockno, int hostid);
 int checkBarrierFlags();
 #endif
