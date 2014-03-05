@@ -1,5 +1,6 @@
 #include "net.h"
 #include "util.h"
+#include "syn.h"
 
 extern int myhostid;
 extern int hostnum;
@@ -355,6 +356,21 @@ void dispatchMsg(mimsg_t *msg){
 	switch(msg->command){
 		case TEST_COMMAND:
 			testCommand(msg);
+			break;
+		case ACQ:
+			handleAcquireMsg(msg);
+			break;
+		case RLS:
+			handleReleaseMsg(msg);
+			break;
+		case GRANT:
+			handleGrantMsg(msg);
+			break;
+		case ENTER_BARRIER:
+			handleEnterBarrierMsg(msg);
+			break;
+		case EXIT_BARRIER:
+			handleExitBarrierMsg(msg);
 			break;
 		default: 
 			fprintf(stderr, "command %d has no handler\n", msg->command);
