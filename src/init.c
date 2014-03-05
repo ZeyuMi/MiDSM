@@ -48,10 +48,10 @@ void startNodePrograms(int argc, char **argv){
 		strcat(address, "@");
 		strcat(address, hosts[i].address);
 
-		sprintf(cmd, "ssh %s \"cd %s; ", address, wd);	
+		sprintf(cmd, "ssh %s \"cd %s; nohup ", address, wd);	
 
 		strcat(cmd, *argv);
-		strcat(cmd, " &\"");
+		strcat(cmd, " > /dev/null 2>&1 &\"");
 		system(cmd);
 	}
 }
