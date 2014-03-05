@@ -1,4 +1,5 @@
 #include "../src/net.h"
+#include "../src/syn.h"
 #include <string.h>
 #include <stdio.h>
 #include <netdb.h>
@@ -20,6 +21,8 @@ void wait(){
 	int size = recvfrom(fd, buf, 128, 0, NULL, NULL);
 	printf("%s\n", buf);		
 }
+
+
 int main(){
 	myhostid = 0;
 	strcpy(hosts[0].address, "192.168.48.42");
@@ -27,6 +30,7 @@ int main(){
 	strcpy(hosts[1].address, "192.168.48.40");
 	strcpy(hosts[1].username, "zeyu");
 	hostnum = 2;
+
 	wait();
 
 	initnet();
