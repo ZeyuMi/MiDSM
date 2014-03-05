@@ -14,16 +14,18 @@ int sndHead, sndTail, sndQueueSize, recvHead, recvTail, recvQueueSize;
 netmanager datamanager;
 netmanager ackmanager;
 
-sigset_t oldset;
 void disableSigio(){
 	sigset_t blset;
 	sigemptyset(&blset);
 	sigaddset(&blset, SIGIO);
-	sigprocmask(SIG_BLOCK, &blset, &oldset);
+	sigprocmask(SIG_BLOCK, &blset, NULL);
 }
 
 void enableSigio(){
-	sigprocmask(SIG_UNBLOCK, &oldset, NULL);
+	sigset_t blset;
+	sigemptyset(&blset);
+	sigaddset(&blset, SIGIO);
+	sigprocmask(SIG_UNBLOCK, &blset, NULL);
 }
 
 

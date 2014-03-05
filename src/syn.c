@@ -51,16 +51,20 @@ int mi_lock(int lockno){
 	if(myLocks[lockno] == 1){
 		return -2;
 	}
+	disableSigio();
+	int result;
 	if((lockno % hostnum) == myhostid){
 		int result = graspLock(lockno, myhostid);
 		if(result == -2){
 			waitFlag = 1;
+			enableSigio();
 			while(waitFlag)
 				;
-			return 0;
+			result = 0;
 		}else{
 			myLocks[lockno] = 1;
-			return 0;
+			result = 0;
+			enableSigio();
 		}
 	}else{
 		mimsg_t *msg = nextFreeMsgInQueue(0);
@@ -72,10 +76,12 @@ int mi_lock(int lockno){
 		apendMsgData(msg, buffer, sizeof(int));
 		sendMsg(msg);
 		waitFlag = 1;
+		enableSigio();
 		while(waitFlag)
 			;
-		return 0;
+		result = 0;
 	}
+	return result;
 }
 
 
@@ -95,17 +101,19 @@ int mi_unlock(int lockno){
 	if(myLocks[lockno] == 0){
 		return -2;
 	}
+	disableSigio();
+	int result;
 	if((lockno % hostnum) == myhostid){
 		myLocks[lockno] = 0;
 		int result = freeLock(lockno, myhostid);	
 		if(result == -5){
-			return 0;
+			result = 0;
 		}else if((result >= 0) && (result != myhostid)){
 			grantLock(lockno, result);
-			return 0;
+			result = 0;
 		}else{
 			fprintf(stderr, "error occured in mi_lock with result = %d\n",result);
-			return 0;
+			result = 0;
 		}
 	}else{
 		mimsg_t *msg = nextFreeMsgInQueue(0);
@@ -116,8 +124,10 @@ int mi_unlock(int lockno){
 		sprintf(buffer, "%d", lockno);
 		apendMsgData(msg, buffer, sizeof(int));
 		sendMsg(msg);
-		return 0;
+		result = 0;
 	}
+	enableSigio();
+	return result;
 }
 
 
@@ -125,6 +135,7 @@ int mi_unlock(int lockno){
 * user will use this procedure to enter barrier
 **/
 void mi_barrier(){
+	disableSigio()
 	if(myhostid == 0){
 		barrierFlags[0] = 1;
 		int result = checkBarrierFlags();
@@ -139,6 +150,7 @@ void mi_barrier(){
 		sendMsg(msg);
 	}
 	waitFlag = 1;
+	enableSigio();
 	while(waitFlag)
 		;
 	return;
@@ -210,7 +222,7 @@ void handleExitBarrierMsg(mimsg_t *msg){
 	}
 	int from = msg->from;
 	if(from == 0){
-		printf("waitFlag == 0 in exitBarrierHandler\n");
+		printf("waitFlag = 0 in exitBarrierHandler\n");
 		waitFlag = 0;
 	}
 }

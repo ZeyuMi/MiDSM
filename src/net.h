@@ -57,4 +57,6 @@ int msgDequeue(int type);
 void dispatchMsg(mimsg_t *msg);
 int sendMsg(mimsg_t *msg);
 int apendMsgData(mimsg_t *msg, char *data, int len);
+void disableSigio();
+void enableSigio();
 #endif
