@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 
 	int i, j, result;
 	result = 0;
-	printf("grasp lock 0\n");
+	printf("grasp lock 1\n");
 	mi_lock(1);
 	printf("exit\n");
 }

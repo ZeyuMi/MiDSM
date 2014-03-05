@@ -42,9 +42,9 @@ int main(int argc, char **argv){
 	mi_lock(0);
 	printf("free lock 0 successfully\n");
 	
-	printf("grasp lock 0\n");
+	printf("grasp lock 1\n");
 	mi_lock(1);
-	printf("grasp lock 0 successfully\n");
+	printf("grasp lock 1 successfully\n");
 
 	printf("enter barrier\n");
 	mi_barrier();
