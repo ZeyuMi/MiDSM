@@ -15,12 +15,15 @@ int barrierFlags[MAX_HOST_NUM];
 * initialization of syn module, set initial values for all global variables
 **/
 void initsyn(){
-	int i;
+	int i, j;
 	for(i = 0; i < LOCK_NUM; i++){
 		locks[i].state = FREE;
 		locks[i].owner = -1;
 		locks[i].lasthostid = -1;
-		locks[i].waitingList = NULL;
+		for(j = 0; j < MAX_HOST_NUM; j++){
+			locks[i].waitingList[j] = -1;
+		}
+		locks[i].waitingListCount = 0;
 	}
 	waitFlag = 0;
 	for(i = 0; i < LOCK_NUM; i++){
@@ -83,7 +86,7 @@ int mi_lock(int lockno){
 * return value
 *	 0 --- success
 *	-1 --- parameter error
-*	-2 --- use does not own this lock 
+*	-2 --- user does not own this lock 
 **/
 int mi_unlock(int lockno){
 	if((lockno < 0) || (lockno >= LOCK_NUM)){
@@ -219,7 +222,7 @@ void handleExitBarrierMsg(mimsg_t *msg){
 **/
 void handleGrantMsg(mimsg_t *msg){
 	if(msg == NULL){
-		return NULL;
+		return;
 	}
 	int lockno = strtol(msg->data, NULL, 10);
 	if((lockno >= 0) && (lockno <= LOCK_NUM)){
@@ -242,8 +245,6 @@ void handleGrantMsg(mimsg_t *msg){
 *	-4 --- this host has already owned this lock
 **/
 int graspLock(int lockno, int hostid){
-	extern hostnum;
-	extern myhostid;
 	if(lockno < 0 || lockno >= LOCK_NUM || hostid < 0 || hostid >= hostnum){
 		return -1;
 	}
@@ -258,18 +259,8 @@ int graspLock(int lockno, int hostid){
 		if(locks[lockno].owner == hostid){
 			return -4;
 		}
-		acquirer_t *acquirer = malloc(sizeof(acquirer_t));
-		acquirer->next = NULL;
-		acquirer->hostid = hostid;
-		if(locks[lockno].waitingList == NULL){
-			locks[lockno].waitingList = acquirer;
-		}else{
-			acquirer_t *temp = locks[lockno].waitingList;
-			while(temp->next != NULL){
-				temp = temp->next;
-			}
-			temp->next = acquirer;
-		}
+		locks[lockno].waitingList[locks[lockno].waitingListCount] = hostid;
+		(locks[lockno].waitingListCount)++;
 		return -3;
 	}
 }
@@ -315,8 +306,6 @@ void grantLock(int lockno, int hostid){
 *	  -5 --- no waiting host
 **/
 int freeLock(int lockno, int hostid){
-	extern hostnum;
-	extern myhostid;
 	if(lockno < 0 || lockno >= LOCK_NUM || hostid < 0 || hostid >= hostnum){
 		return -1;
 	}
@@ -329,16 +318,19 @@ int freeLock(int lockno, int hostid){
 		if(locks[lockno].owner != hostid){
 			return -4;
 		}
-		if(locks[lockno].waitingList == NULL){
+		if(locks[lockno].waitingListCount == 0){
 			locks[lockno].state = FREE;
 			locks[lockno].owner = -1;
 			locks[lockno].lasthostid = hostid;
 			return -5;
 		}else{
-			int waitinghostid = locks[lockno].waitingList->hostid;
-			acquirer_t *temp = locks[lockno].waitingList;
-			free(temp);
-			locks[lockno].waitingList = locks[lockno].waitingList->next;
+			int waitinghostid = locks[lockno].waitingList[0];
+			int i;
+			for(i = 0; i < (locks[lockno].waitingListCount)-1; i++){
+				locks[lockno].waitingList[i] = locks[lockno].waitingList[i+1];
+			}
+			locks[lockno].waitingList[(locks[lockno].waitingListCount)-1] = -1;
+			(locks[lockno].waitingListCount)--;
 			locks[lockno].owner = waitinghostid;
 			locks[lockno].lasthostid = hostid;
 			return waitinghostid;

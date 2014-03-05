@@ -2,18 +2,16 @@
 #define MISYN_H
 
 #include "net.h"
+#include "init.h"
 
 #define LOCK_NUM 1024
 
-typedef struct miAcquirer{
-		int hostid;
-		struct miAcquirer *next;
-	}acquirer_t;
 typedef struct {
 		int state;
 		int owner;
 		int lasthostid;
-		acquirer_t *waitingList;
+		int waitingList[MAX_HOST_NUM];
+		int waitingListCount;
 	} milock_t;
 typedef enum {LOCKED, FREE} lockstate_t;
 

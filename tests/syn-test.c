@@ -18,7 +18,11 @@ static char *test_initsyn(){
 	mu_assert("syn1", locks[0].state == FREE);
 	mu_assert("syn1.1", locks[0].owner == -1);
 	mu_assert("syn2", locks[0].lasthostid == -1);
-	mu_assert("syn3", locks[0].waitingList == NULL);
+	int i;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		mu_assert("syn3", locks[0].waitingList[i] == -1);
+	}
+	mu_assert("syn3.1", locks[0].waitingListCount == 0);
 	mu_assert("syn4", waitFlag == 0);
 	mu_assert("syn5", myLocks[0] == 0);
 	mu_assert("syn6", myLocks[200] == 0);
@@ -40,7 +44,9 @@ static char *test_graspLock(){
 	mu_assert("syn9", graspLock(0, 2) == 0);
 	mu_assert("syn10", locks[0].state == LOCKED);
 	mu_assert("syn10.1", locks[0].owner == 2);
-	mu_assert("syn10.2", graspLock(0, 2) == -4);
+	mu_assert("syn10.2", locks[0].waitingListCount == 0);
+	mu_assert("syn10.3", locks[0].waitingList[0] == -1);
+	mu_assert("syn10.4", graspLock(0, 2) == -4);
 
 	mu_assert("syn11", graspLock(-1, 2) == -1);
 	mu_assert("syn12", graspLock(2000, 2) == -1);
@@ -53,12 +59,15 @@ static char *test_graspLock(){
 	mu_assert("syn18", graspLock(11, 2) == -2);
 
 	mu_assert("syn19", graspLock(0, 3) == -3);
-	mu_assert("syn20", (*(locks[0].waitingList)).hostid == 3);
-	mu_assert("syn21", (*(locks[0].waitingList)).next == NULL);
+	mu_assert("syn20", locks[0].waitingList[0] == 3);
+	mu_assert("syn20.1", locks[0].waitingListCount == 1);
+	mu_assert("syn21", locks[0].waitingList[1] == -1);
 
 	mu_assert("syn22", graspLock(0, 1) == -3);
-	mu_assert("syn23", (*((*(locks[0].waitingList)).next)).hostid == 1);
-	mu_assert("syn24", (*((*(locks[0].waitingList)).next)).next == NULL);
+	mu_assert("syn23", locks[0].waitingList[0] == 3);
+	mu_assert("syn23.1", locks[0].waitingList[1] == 1);
+	mu_assert("syn23.2", locks[0].waitingList[2] == -1);
+	mu_assert("syn24", locks[0].waitingListCount == 2);
 	return 0;
 }
 
@@ -74,30 +83,37 @@ static char *test_freeLock(){
 	mu_assert("syn25", graspLock(0, 2) == 0);
 	mu_assert("syn26", locks[0].state == LOCKED);
 	mu_assert("syn26.1", locks[0].owner == 2);
+	mu_assert("syn26.2", locks[0].waitingList[0] == -1);
+	mu_assert("syn26.3", locks[0].waitingListCount == 0);
 	mu_assert("syn27", graspLock(0, 3) == -3);
-	mu_assert("syn28", (*(locks[0].waitingList)).hostid == 3);
-	mu_assert("syn29", (*(locks[0].waitingList)).next == NULL);
+	mu_assert("syn28", locks[0].waitingList[0] == 3);
+	mu_assert("syn29", locks[0].waitingListCount == 1);
 
 
 	mu_assert("syn30", graspLock(0, 1) == -3);
 
-	mu_assert("syn31", (*((*(locks[0].waitingList)).next)).hostid == 1);
-	mu_assert("syn32", (*((*(locks[0].waitingList)).next)).next == NULL);
+	mu_assert("syn31", locks[0].waitingList[0] == 3);
+	mu_assert("syn31.1", locks[0].waitingList[1] == 1);
+	mu_assert("syn32", locks[0].waitingListCount == 2);
+
 	mu_assert("syn33", freeLock(0, 2) == 3);
 	mu_assert("syn34", locks[0].state == LOCKED);
 	mu_assert("syn34.1", locks[0].owner == 3);
 	mu_assert("syn34.2", locks[0].lasthostid == 2);
-	mu_assert("syn35", locks[0].waitingList->hostid == 1);
-	mu_assert("syn36", locks[0].waitingList->next == NULL);
+	mu_assert("syn35", locks[0].waitingList[0] == 1);
+	mu_assert("syn36", locks[0].waitingListCount == 1);
 	mu_assert("syn37", freeLock(0, 3) == 1);
 	mu_assert("syn38", locks[0].state == LOCKED);
 	mu_assert("syn38.1", locks[0].owner == 1);
 	mu_assert("syn38.2", locks[0].lasthostid == 3);
-	mu_assert("syn39", locks[0].waitingList == NULL);
+	mu_assert("syn39", locks[0].waitingList[0] == -1);
+	mu_assert("syn39.1", locks[0].waitingListCount == 0);
 	mu_assert("syn40", freeLock(0, 1) == -5);
 	mu_assert("syn41", locks[0].state == FREE);
 	mu_assert("syn41.1", locks[0].owner == -1);
 	mu_assert("syn41.2", locks[0].lasthostid == 1);
+	mu_assert("syn41.3", locks[0].waitingList[0] == -1);
+	mu_assert("syn41.4", locks[0].waitingListCount == 0);
 
 	mu_assert("syn42", freeLock(-1, 2) == -1);
 	mu_assert("syn43", freeLock(1024, 2) == -1);
