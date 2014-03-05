@@ -96,7 +96,7 @@ int mi_unlock(int lockno){
 		return -2;
 	}
 	if((lockno % hostnum) == myhostid){
-		myLocks[lockno] = 1;
+		myLocks[lockno] = 0;
 		int result = freeLock(lockno, myhostid);	
 		if(result == -5){
 			return 0;
@@ -210,6 +210,7 @@ void handleExitBarrierMsg(mimsg_t *msg){
 	}
 	int from = msg->from;
 	if(from == 0){
+		printf("waitFlag == 0 in exitBarrierHandler\n");
 		waitFlag = 0;
 	}
 }
