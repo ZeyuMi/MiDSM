@@ -135,7 +135,7 @@ int mi_unlock(int lockno){
 * user will use this procedure to enter barrier
 **/
 void mi_barrier(){
-	disableSigio()
+	disableSigio();
 	if(myhostid == 0){
 		barrierFlags[0] = 1;
 		int result = checkBarrierFlags();
