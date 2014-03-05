@@ -13,6 +13,7 @@ typedef struct {
 		int waitingList[MAX_HOST_NUM];
 		int waitingListCount;
 	} milock_t;
+
 typedef enum {LOCKED, FREE} lockstate_t;
 
 void initsyn();

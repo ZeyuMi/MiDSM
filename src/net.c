@@ -356,9 +356,6 @@ void dispatchMsg(mimsg_t *msg){
 		return;
 	}
 	switch(msg->command){
-		case TEST_COMMAND:
-			testCommand(msg);
-			break;
 		case ACQ:
 			handleAcquireMsg(msg);
 			break;

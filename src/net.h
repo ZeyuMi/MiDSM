@@ -22,13 +22,6 @@
 #define MAX_RETRY_NUM 64
 #define TIMEOUT 1000
 
-#define TEST_COMMAND 0
-#define ACQ 1
-#define RLS 2
-#define GRANT 3
-#define ENTER_BARRIER 4
-#define EXIT_BARRIER 5
-
 
 typedef struct {
 		int from;
@@ -47,6 +40,8 @@ typedef struct {
 		fd_set recv_fdset;
 		int recv_maxfd;
 	} netmanager;
+
+typedef enum {ACQ, RLS, GRANT, ENTER_BARRIER, EXIT_BARRIER} command_t;
 
 void initnet();
 int createSocket(short int port, int isRecv, int bufSize);
