@@ -46,7 +46,7 @@ void startNodePrograms(int argc, char **argv){
 			
 		strcat(wd, "/home/");
 		strcat(wd, hosts[i].username);
-		strcat(wd, "/Desktop/MiDSM/src/");
+		strcat(wd, "/Desktop/MiDSM/tests/");
 
 		strcat(address, hosts[i].username);
 		strcat(address, "@");
