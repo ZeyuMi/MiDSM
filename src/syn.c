@@ -222,7 +222,6 @@ void handleExitBarrierMsg(mimsg_t *msg){
 	}
 	int from = msg->from;
 	if(from == 0){
-		printf("waitFlag = 0 in exitBarrierHandler\n");
 		waitFlag = 0;
 	}
 }

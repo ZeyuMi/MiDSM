@@ -27,7 +27,7 @@ int main(){
 
 	int i, j, result;
 	result = 0;
-	for(i = 0; i < 10; i++){
+	for(i = 0; i < 10000; i++){
 		printf("grasp lock\n");
 		mi_lock(0);
 		printf("grasp lock successfully\n");
