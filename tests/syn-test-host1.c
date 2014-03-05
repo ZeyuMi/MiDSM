@@ -9,19 +9,6 @@
 int myhostid;
 int hostnum;
 host_t hosts[MAX_HOST_NUM];
-void wait(){
-	int fd = socket(AF_INET, SOCK_DGRAM, 0);
-	struct sockaddr_in server, client;
-	server.sin_family = AF_INET;
-	server.sin_port = 33233;
-//	inet_pton(AF_INET, &INADDR_ANY, &(server.sin_addr.s_addr));
-	server.sin_addr.s_addr = INADDR_ANY;
-	bind(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
-	char buf[128];
-	int size = recvfrom(fd, buf, 128, 0, NULL, NULL);
-	printf("%s\n", buf);		
-}
-
 
 int main(){
 	myhostid = 0;
@@ -31,21 +18,30 @@ int main(){
 	strcpy(hosts[1].username, "zeyu");
 	hostnum = 2;
 
-	wait();
 
 	initnet();
+	initsyn();
+	
+	printf("enter barrier\n");
+	mi_barrier();
+	printf("exit barrier\n");
 
-	mimsg_t *m1;
-	char *s1 = "test from 0!";
-	int i;
-	for(i = 0; i < 1000000; i++){
-		m1 = nextFreeMsgInQueue(0);
-		m1->from = 0;
-		m1->to = 1;
-		m1->command = TEST_COMMAND;
-		apendMsgData(m1, s1, strlen(s1)+1);
-		sendMsg(m1);
+	int i, j, result;
+	result = 0;
+	for(i = 0; i < 10; i++){
+		printf("grasp lock\n");
+		mi_lock(0);
+		printf("grasp lock successfully\n");
+		for(j = 0; j < 10000; j++){
+			result++;
+		}
+		printf("free lock\n");	
+		mi_unlock(0);
+		printf("free lock successfully\n");	
 	}
-	while(1)
-		;
+	
+	printf("enter barrier\n");
+	mi_barrier();
+	printf("exit barrier\n");
+	printf("result = %d\n",result);
 }
