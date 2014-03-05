@@ -202,7 +202,13 @@ void handleEnterBarrierMsg(mimsg_t *msg){
 *	msg : msg to be handled
 **/
 void handleExitBarrierMsg(mimsg_t *msg){
-
+	if(msg == NULL){
+		return;
+	}
+	int from = msg->from;
+	if(from == 0){
+		waitFlag = 0;
+	}
 }
 
 
@@ -212,7 +218,14 @@ void handleExitBarrierMsg(mimsg_t *msg){
 *	msg : msg to be handled
 **/
 void handleGrantMsg(mimsg_t *msg){
-
+	if(msg == NULL){
+		return NULL;
+	}
+	int lockno = strtol(msg->data, NULL, 10);
+	if((lockno >= 0) && (lockno <= LOCK_NUM)){
+		myLocks[lockno] = 1;
+		waitFlag = 0;
+	}
 }
 
 
