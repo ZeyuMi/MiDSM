@@ -51,7 +51,7 @@ void startNodePrograms(int argc, char **argv){
 		sprintf(cmd, "ssh %s \"cd %s; ", address, wd);	
 
 		strcat(cmd, *argv);
-		strcat(cmd, "\"");
+		strcat(cmd, " &\"");
 		system(cmd);
 	}
 }
