@@ -4,6 +4,7 @@
 #include <pwd.h>
 #include "init.h"
 #include "net.h"
+#include "syn.h"
 
 host_t hosts[MAX_HOST_NUM];
 int hostnum = 0;
@@ -22,12 +23,7 @@ void mi_init(int argc, char **argv){
 	if(myhostid == 0){
 		printf("node 0 is starting other node...\n");
 		startNodePrograms(argc, argv);
-		while(1)
-			;
-	}else{
-		printf( "node 1 has been started...\n");
-		exit(1);
-	}	
+	}
 }
 
 
@@ -70,6 +66,7 @@ void initLocalEnv(){
 	struct passwd *user = getpwuid(id);
 	myhostid = findHostIdByName(user->pw_name);
 	initnet();
+	initsyn();
 } 
 
 
