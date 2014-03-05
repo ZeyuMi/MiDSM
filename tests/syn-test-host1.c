@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 
 	int i, j, result;
 	result = 0;
-	for(i = 0; i < 10000; i++){
+//	for(i = 0; i < 10000; i++){
 		printf("grasp lock\n");
 		mi_lock(0);
 		printf("grasp lock successfully\n");
@@ -40,7 +40,7 @@ int main(int argc, char **argv){
 		printf("free lock\n");	
 		mi_unlock(0);
 		printf("free lock successfully\n");	
-	}
+//	}
 	
 	printf("enter barrier\n");
 	mi_barrier();
