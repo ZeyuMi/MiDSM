@@ -20,9 +20,6 @@ int main(){
 
 	initnet();
 	initsyn();
-
-	initnet();
-	initsyn();
 	
 	printf("enter barrier\n");
 	mi_barrier();
