@@ -356,13 +356,13 @@ void dispatchMsg(mimsg_t *msg){
 		return;
 	}
 	switch(msg->command){
-		case ACQ:
+		case ACQ_LOCK:
 			handleAcquireMsg(msg);
 			break;
-		case RLS:
+		case RLS_LOCK:
 			handleReleaseMsg(msg);
 			break;
-		case GRANT:
+		case GRANT_LOCK:
 			handleGrantMsg(msg);
 			break;
 		case ENTER_BARRIER:

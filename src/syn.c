@@ -70,7 +70,7 @@ int mi_lock(int lockno){
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
 		msg->to = lockno % hostnum;
-		msg->command = ACQ;
+		msg->command = ACQ_LOCK;
 		char buffer[20];
 		sprintf(buffer, "%d", lockno);
 		apendMsgData(msg, buffer, sizeof(int));
@@ -119,7 +119,7 @@ int mi_unlock(int lockno){
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
 		msg->to = lockno % hostnum;
-		msg->command = RLS;
+		msg->command = RLS_LOCK;
 		char buffer[20];
 		sprintf(buffer, "%d", lockno);
 		apendMsgData(msg, buffer, sizeof(int));
@@ -297,7 +297,7 @@ void grantLock(int lockno, int hostid){
 	mimsg_t *msg = nextFreeMsgInQueue(0);
 	msg->from = myhostid;
 	msg->to = hostid;
-	msg->command = GRANT;
+	msg->command = GRANT_LOCK;
 	char buffer[20];
 	sprintf(buffer, "%d", lockno);
 	apendMsgData(msg, buffer, sizeof(int));
