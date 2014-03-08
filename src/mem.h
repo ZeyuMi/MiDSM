@@ -13,7 +13,7 @@
 typedef enum {UNMAP, RDONLY, WRITE, MISS, INVALID} pagestate_t;
 typedef struct interval{
 		int timestamp[MAX_HOST_NUM];
-		writenotice_t *notices;
+		struct writenotice *notices;
 		struct interval *next;
 		int isBarrier;
 	}interval_t;
@@ -27,7 +27,7 @@ typedef struct {
 		void *address;
 		int state;
 		writenotice_t *notices[MAX_HOST_NUM];
-		void *diffAddress;
+		void *twinPage;
 	}page_t;
 typedef struct {
 		int hostid;
