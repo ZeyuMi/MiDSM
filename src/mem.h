@@ -51,7 +51,7 @@ int grantWNI(int hostid, int *timestamp);
 int grantPage(int hostid, int pageIndex);
 int grantDiff(int hostid, int *timestamp, int pageIndex);
 int applyDiff(void *destAddress, void *diffAddress);
-void createLocalDiff(void *pageAddress, void *twinAddress);
+void *createLocalDiff(void *pageAddress, void *twinAddress);
 int incorporateWnPacket(wnPacket_t *packet);
 int createWriteNotice(int pageIndex);
 void handleFetchPageMsg(mimsg_t *msg);
@@ -60,6 +60,6 @@ void handleGrantDiffMsg(mimsg_t *msg);
 void handleGrantPageMsg(mimsg_t *msg);
 void handleGrantWNIMsg(mimsg_t *msg);
 int isAfterInterval(int *timestamp, int *targetTimestamp);
-int addNewInterval();
+void addNewInterval();
 writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *timestamp, writenotice_t *notices);
 #endif

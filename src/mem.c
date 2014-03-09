@@ -161,32 +161,96 @@ int grantDiff(int hostid, int *timestamp, int pageIndex){
 
 
 /**
-* 1
+* add the memory block pointed by 'twinAddress' to the memory block pointed by 'pageAddress', the sizes of whose are PAGESIZE
+* parameters
+*	pageAddress : pointer of targeted memory block
+*	twinAddress : pointed of twinPage
+* return value
+*	 0 --- success
+*	-1 --- parameters error 
 **/
 int applyDiff(void *pageAddress, void *twinAddress){
+	if(pageAddress == NULL || twinAddress == NULL){
+		return -1;
+	}
+	int i;
+	for(i = 0; i < PAGESIZE; i++){
+		*((char *)pageAddress+i) = *((char *)pageAddress+i) + *((char *)twinAddress+i);
+	}
+	return 0;
+}
+
+
+/**
+* allocate a new memory block whose size is equal to PAGESIZE, and save a value into the 'i'th element which is the result of 'i'th element in 'pageAddress' minus 'i'the element in 'twinAddress'.  
+* parameters
+*	pageAddress : pointer of a memory block
+*	twinAddress : pointer of a memory block
+* return value
+*	NOT NULL --- success
+*	NULL     --- parameters error
+**/
+void *createLocalDiff(void *pageAddress, void *twinAddress){
+	if(pageAddress == NULL || twinAddress == NULL){
+		return NULL;
+	}
+	void *diffAddress = malloc(PAGESIZE);
+	int i;
+	for(i = 0; i < PAGESIZE; i++){
+		*((char *)diffAddress+i) = *((char *)pageAddress+i) - *((char *)twinAddress+i);
+	}
+	return diffAddress;
 
 }
 
 
 /**
-* 2
+* This procedure incorporates an interval and its writenotices into local data structures. The page which received writenotice will become 'INVALID' and create local diff.
+* parameters
+	packet : a pointer to the struct that encapsulates interval and writenotices
+* return value
+*	 0 --- success
+*	-1 --- parameters error
 **/
-void createLocalDiff(void *pageAddress, void *twinAddress){
-
-
-}
-
-
 int incorporateWnPacket(wnPacket_t *packet){
 
 }
 
 
 /**
-* 3
+* create a local writenotice for a page element in pageArray which is indexed by 'pageIndex'
+* parameters
+*	pageIndex : index in pageArray
+* return value
+*	 0 --- success
+*	-1 --- parameters error 
 **/
 int createWriteNotice(int pageIndex){
+	if(pageIndex < 0 || pageIndex >= MAX_PAGE_NUM){
+		return -1;
+	}
+	if(pageArray[pageIndex].state != RDONLY){
+		return -1;
+	}
+	
+	writenotice_t *wn = malloc(sizeof(writenotice_t));
+	wn->interval = intervalNow;
+	wn->nextInPage = NULL;
+	wn->nextInInterval = NULL;
+	wn->diffAddress = NULL;
 
+	wn->nextInPage = pageArray[pageIndex].notices[myhostid];
+	pageArray[pageIndex].notices[myhostid] = wn;
+	writenotice_t *temp = intervalNow->notices;
+	if(temp == NULL){
+		intervalNow->notices = wn;
+	}else{
+		while(temp->nextInInterval != NULL){
+			temp = temp->nextInInterval;	
+		}
+		temp->nextInInterval = wn;
+	}
+	return 0;
 }
 
 
@@ -241,9 +305,21 @@ int isAfterInterval(int *timestamp, int *targetTimestamp){
 }
 
 
-int addNewInterval(){
-
-
+/**
+* This procedure will be invoked when releasing a lock. It will make a new interval and point it using 'intervalNow'
+**/
+void addNewInterval(){
+	intervalNow = malloc(sizeof(interval_t));
+	memset(intervalNow, 0, sizeof(interval_t));
+	int i;
+	for(i = 0; i < hostnum; i++){
+		(intervalNow->timestamp)[i] = (procArray[myhostid].intervalList->timestamp)[i];
+	}
+	(intervalNow->timestamp)[myhostid]++;
+	intervalNow->notices = NULL;
+	intervalNow->next = procArray[myhostid].intervalList;
+	procArray[myhostid].intervalList = intervalNow;
+	intervalNow->isBarrier = 0;
 }
 
 
