@@ -213,7 +213,40 @@ void *createLocalDiff(void *pageAddress, void *twinAddress){
 *	-1 --- parameters error
 **/
 int incorporateWnPacket(wnPacket_t *packet){
-
+	if(packet == NULL){
+		return -1;
+	}
+	int hostid = packet->hostid;
+	int *timestamp = packet->timestamp;
+	int wnCount = packet->wnCount;
+	interval_t *interval = malloc(sizeof(interval_t));
+	interval->notices = NULL;
+	interval->next = NULL;
+	interval->isBarrier = 0;
+	int i;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		(interval->timestamp)[i] = timestamp[i];
+	}
+	interval->next = procArray[hostid].intervalList;
+	procArray[hostid].intervalList = interval;
+	writenotice_t *lastwn = NULL;
+	for(i = 0; i < wnCount; i++){
+		int pageIndex = (packet->wnArray)[i];
+		writenotice_t *wn = malloc(sizeof(writenotice_t));
+		wn->interval = interval;
+		wn->nextInPage = pageArray[pageIndex].notices[hostid];
+		pageArray[pageIndex].notices[hostid] = wn;
+		wn->diffAddress = NULL;
+		wn->nextInInterval = NULL;
+		wn->pageIndex = pageIndex;
+		if(lastwn == NULL){
+			interval->notices = wn;
+		}else{
+			lastwn->nextInInterval = wn;
+		}
+		lastwn = wn;
+	}
+	return 0;
 }
 
 
@@ -238,6 +271,7 @@ int createWriteNotice(int pageIndex){
 	wn->nextInPage = NULL;
 	wn->nextInInterval = NULL;
 	wn->diffAddress = NULL;
+	wn->pageIndex = pageIndex;
 
 	wn->nextInPage = pageArray[pageIndex].notices[myhostid];
 	pageArray[pageIndex].notices[myhostid] = wn;
@@ -323,8 +357,18 @@ void addNewInterval(){
 }
 
 
+/**
+* This procedure will initialize a wnPacket with hostid, timestamp and related writenotices. If the number of notices is bigger than MAX_WN_NUM, the writenotice which is not be added to the wnPacket will be returned.
+* parameters
+*	packet 	   : a pointer to the wnPacket which will be initialized
+*	hostid	   : id of a host
+*	timestamp  : a pointer to a vector timestamp
+*	notices    : writenotice linked list
+* return value
+*	 NOT NULL --- the pointer to the writenotice linked list that is not be added to the wnPacket
+*	     NULL --- success
+**/
 writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *timestamp, writenotice_t *notices){
-
 
 }
 

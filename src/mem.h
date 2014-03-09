@@ -22,6 +22,7 @@ typedef struct writenotice{
 		struct writenotice *nextInPage;
 		struct writenotice *nextInInterval;
 		void *diffAddress;
+		int pageIndex;
 	}writenotice_t;
 typedef struct {
 		void *address;
