@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include "mem.h"
+#include "net.h"
 
 extern int myhostid;
 extern int hostnum;
@@ -11,7 +12,7 @@ extern int hostnum;
 page_t pageArray[MAX_PAGE_NUM];
 proc_t procArray[MAX_HOST_NUM];
 interval_t *intervalNow;
-int fetchPageWaitFlag, fetchDiffWaitFlag; 
+int fetchPageWaitFlag, fetchDiffWaitFlag, fetchWNIWaitFlag; 
 int pagenum;
 long mapfd;
 long globalAddress;
@@ -140,8 +141,28 @@ int fetchDiff(int pageIndex){
 }
 
 
+/**
+* This procedure will send a FETCH_WN_I to hostid and it will be blocked when waiting for response.
+* parameters
+*	hostid : id of the destination host 
+* return value
+*	 0 --- success
+*	-1 --- parameters error
+**/
 int fetchWritenoticeAndInterval(int hostid){
-
+	if(hostid < 0 || hostid >= hostnum || hostid == myhostid){
+		return -1;
+	}
+	mimsg_t *msg = nextFreeMsgInQueue(0);
+	msg->from = myhostid;
+	msg->to = hostid;
+	int i;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		msg->timestamp[i] = intervalNow->timestamp[i];
+	}
+	
+	sendMsg(msg);
+	return 0;
 }
 
 
@@ -369,6 +390,35 @@ void addNewInterval(){
 *	     NULL --- success
 **/
 writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *timestamp, writenotice_t *notices){
+	if(packet == NULL || timestamp == NULL || notices == NULL){
+		return NULL;
+	}
+	if(hostid < 0 || hostid >= hostnum){
+		return NULL;
+	}
+	packet->hostid = -1;
+	memset(packet->timestamp, 0, MAX_HOST_NUM * sizeof(int));
+	packet->wnCount = 0;
+	int i;
+	for(i = 0; i < MAX_WN_NUM; i++){
+		packet->wnArray[i] = -1;
+	}
+	packet->hostid = hostid;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		packet->timestamp[i] = timestamp[i];
+	}
+	while((notices != NULL) && (packet->wnCount < MAX_WN_NUM)){
+		packet->wnArray[packet->wnCount] = notices->pageIndex;
+		(packet->wnCount)++;
+		notices = notices->nextInInterval;
+	}
+	if(notices != NULL){
+		return notices;
+	}else{
+		return NULL;
+	}
+
+
 
 }
 
