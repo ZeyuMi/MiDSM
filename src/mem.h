@@ -15,6 +15,7 @@ typedef struct interval{
 		int timestamp[MAX_HOST_NUM];
 		struct writenotice *notices;
 		struct interval *next;
+		struct interval *prev;
 		int isBarrier;
 	}interval_t;
 typedef struct writenotice{

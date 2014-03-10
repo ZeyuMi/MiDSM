@@ -163,15 +163,73 @@ int fetchWritenoticeAndInterval(int hostid){
 *	-1 --- parameters error
 **/
 int grantWNI(int hostid, int *timestamp){
-
+	if(hostid < 0 || hostid >= hostnum || timestamp == NULL){
+		return -1;
+	}
+	if(hostid == myhostid){
+		return -1;
+	}
+	
+	mimsg_t *msg = nextFreeMsgInQueue(0);
+	msg->from = myhostid;
+	msg->to = hostid;
+	msg->command = GRANT_WN_I;
+	int i;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		msg->timestamp[i] = intervalNow->timestamp[i];
+	}
+	int packetNum = 0;
+	apendMsgData(msg, (char *)&packetNum, sizeof(int)); //occupy the packetNum slot
+	wnPacket_t packet;
+	for(i = 0; i < hostnum; i++){
+		proc_t proc = procArray[i];
+		interval_t *intervalLast = proc.intervalList;
+		if(intervalLast == NULL){
+			continue;
+		}
+		while(intervalLast->next != NULL){
+			intervalLast = intervalLast->next;
+		}
+		while(intervalLast != NULL){
+			if(isAfterInterval(intervalLast->timestamp, timestamp) && (intervalLast->notices != NULL)){
+				writenotice_t *left = addWNIIntoPacketForHost(&packet, i, intervalLast->timestamp, intervalLast->notices);
+				apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
+				packetNum++;
+				while(left != NULL){
+					left = addWNIIntoPacketForHost(&packet, i, intervalLast->timestamp, left);
+					apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
+					packetNum++;
+				}
+			}
+			intervalLast = intervalLast->prev;
+		}
+	}
+	//refresh the packetNum value
+	memcpy(msg->data, &packetNum, sizeof(int));
+	sendMsg(msg);
+	return 0;
 }
 
 
+/**
+* 4
+**/
 int grantPage(int hostid, int pageIndex){
 
 }
 
 
+/**
+* This procedure will put the diff of page with index 'pageIndex', if diff does not exist, this procedure will create one. Then, it will send a GRANT_DIFF msg to 'hostid'.
+* parameters
+*	hostid    : destination host
+*	timestamp : a pointer to a timestamp array.
+*	pageIndex : index of a page, whose diff will be sent to 'hostid'
+* return value
+*	 0 --- success
+*	-1 --- parameters error
+*	
+**/
 int grantDiff(int hostid, int *timestamp, int pageIndex){
 
 }
@@ -236,17 +294,44 @@ int incorporateWnPacket(wnPacket_t *packet){
 	int hostid = packet->hostid;
 	int *timestamp = packet->timestamp;
 	int wnCount = packet->wnCount;
-	interval_t *interval = malloc(sizeof(interval_t));
-	interval->notices = NULL;
-	interval->next = NULL;
-	interval->isBarrier = 0;
+	interval_t *interval = procArray[hostid].intervalList;
+	int find = 1;
 	int i;
-	for(i = 0; i < MAX_HOST_NUM; i++){
-		(interval->timestamp)[i] = timestamp[i];
+	while(interval != NULL){
+		find = 1;
+		for(i = 0; i < MAX_HOST_NUM; i++){
+			if(interval->timestamp[i] != timestamp[i]){
+				find = 0;
+				break;
+			}	
+		}
+		if(find == 1){
+			break;
+		}else{
+			interval = interval->next;
+		}
 	}
-	interval->next = procArray[hostid].intervalList;
-	procArray[hostid].intervalList = interval;
 	writenotice_t *lastwn = NULL;
+	if(find == 1 && interval != NULL){
+		lastwn = interval->notices;
+		while(lastwn != NULL && lastwn->nextInInterval != NULL){
+			lastwn = lastwn->nextInInterval;
+		}	
+	}else{
+		interval = malloc(sizeof(interval_t));
+		interval->notices = NULL;
+		interval->next = NULL;
+		interval->prev = NULL;
+		interval->isBarrier = 0;
+		for(i = 0; i < MAX_HOST_NUM; i++){
+			(interval->timestamp)[i] = timestamp[i];
+		}
+		interval->next = procArray[hostid].intervalList;
+		if(procArray[hostid].intervalList != NULL){
+			procArray[hostid].intervalList->prev = interval;
+		}
+		procArray[hostid].intervalList = interval;
+	}
 	for(i = 0; i < wnCount; i++){
 		int pageIndex = (packet->wnArray)[i];
 		writenotice_t *wn = malloc(sizeof(writenotice_t));
@@ -316,19 +401,52 @@ void handleFetchDiffMsg(mimsg_t *msg){
 }
 
 
+/**
+* 3
+**/
 void handleGrantDiffMsg(mimsg_t *msg){
-
+	
 }
 
 
+/**
+* 5
+**/
 void handleGrantPageMsg(mimsg_t *msg){
 
 
 }
 
 
+/**
+* This method will be invoked by dispatchMsg. It will incoporates all wnPacket_t in 'msg' to local data structure.
+* parameters
+*	msg : msg to be handled  
+**/
 void handleGrantWNIMsg(mimsg_t *msg){
+	if(msg == NULL){
+		return;
+	}	
+	intervalNow = malloc(sizeof(interval_t));
+	memset(intervalNow, 0, sizeof(interval_t));
 
+	int i;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		intervalNow->timestamp[i] = msg->timestamp[i];
+	}
+	(intervalNow->timestamp[myhostid])++;
+	intervalNow->next = procArray[myhostid].intervalList;
+	if(procArray[myhostid].intervalList != NULL){
+		procArray[myhostid].intervalList->prev = intervalNow;
+	}
+	procArray[myhostid].intervalList = intervalNow;
+	
+	int packetNum = *((int *)msg->data);
+	wnPacket_t *packet =(wnPacket_t *)(msg->data + sizeof(int));
+	for(i = 0; i < packetNum; i++){
+		packet = packet + i;	
+		incorporateWnPacket(packet);
+	}
 }
 
 
@@ -369,6 +487,10 @@ void addNewInterval(){
 	(intervalNow->timestamp)[myhostid]++;
 	intervalNow->notices = NULL;
 	intervalNow->next = procArray[myhostid].intervalList;
+	intervalNow->prev = NULL;
+	if(procArray[myhostid].intervalList != NULL){
+		procArray[myhostid].intervalList->prev = intervalNow;
+	}
 	procArray[myhostid].intervalList = intervalNow;
 	intervalNow->isBarrier = 0;
 }
@@ -413,8 +535,5 @@ writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *time
 	}else{
 		return NULL;
 	}
-
-
-
 }
 
