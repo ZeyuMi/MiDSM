@@ -228,29 +228,77 @@ int grantPage(int hostid, int pageIndex){
 * return value
 *	 0 --- success
 *	-1 --- parameters error
+*	-2 --- no such page
 *	
 **/
 int grantDiff(int hostid, int *timestamp, int pageIndex){
+	if(hostid < 0 || hostid >= hostnum || hostid == myhostid){
+		return -1;
+	}
+	if(timestamp == NULL){
+		return -1;
+	}
+	if(pageIndex < 0 || pageIndex >= MAX_PAGE_NUM){
+		return -1;
+	}
+	if(pageArray[pageIndex].state == UNMAP || pageArray[pageIndex].state == MISS){
+		return -1;
+	}
+	writenotice_t *wn = pageArray[pageIndex].notices[myhostid];
 
+	int i;
+	int find = 1;
+	while(wn != NULL){
+		find = 1;
+		for(i = 0; i < MAX_HOST_NUM; i++){
+			if(wn->interval->timestamp[i] != timestamp[i]){
+				find = 0;
+				break;
+			}
+		}
+		if(find == 1){
+			break;
+		}
+		wn = wn->nextInPage;
+	}
+	if(wn != NULL && find == 1){//find writenotice
+		if(wn->diffAddress == NULL){//diff has not been created
+			wn->diffAddress = createLocalDiff(pageArray[pageIndex].address, pageArray[pageIndex].twinPage);
+			freeTwinPage(pageIndex);
+			pageArray[pageIndex].state = RDONLY;
+			mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ);	
+		}
+		mimsg_t *msg = nextFreeMsgInQueue(0);
+		msg->from = myhostid;
+		msg->to = hostid;
+		msg->command = GRANT_DIFF;
+		apendMsgData(msg, (char *)timestamp, sizeof(int) * MAX_HOST_NUM);
+		apendMsgData(msg, (char *)&pageIndex, sizeof(int));
+		apendMsgData(msg, wn->diffAddress, PAGESIZE);
+		sendMsg(msg);
+		return 0;
+	}else{// not find writenotice
+		return -2;
+	}
 }
 
 
 /**
-* add the memory block pointed by 'twinAddress' to the memory block pointed by 'pageAddress', the sizes of whose are PAGESIZE
+* add the memory block pointed by 'diffAddress' to the memory block pointed by 'pageAddress', the sizes of whose are PAGESIZE
 * parameters
 *	pageAddress : pointer of targeted memory block
-*	twinAddress : pointed of twinPage
+*	diffAddress : pointed of twinPage
 * return value
 *	 0 --- success
 *	-1 --- parameters error 
 **/
-int applyDiff(void *pageAddress, void *twinAddress){
-	if(pageAddress == NULL || twinAddress == NULL){
+int applyDiff(void *pageAddress, void *diffAddress){
+	if(pageAddress == NULL || diffAddress == NULL){
 		return -1;
 	}
 	int i;
 	for(i = 0; i < PAGESIZE; i++){
-		*((char *)pageAddress+i) = *((char *)pageAddress+i) + *((char *)twinAddress+i);
+		*((char *)pageAddress+i) = *((char *)pageAddress+i) + *((char *)diffAddress+i);
 	}
 	return 0;
 }
@@ -402,10 +450,46 @@ void handleFetchDiffMsg(mimsg_t *msg){
 
 
 /**
-* 3
+* This  procedure will be invoked by dispatchMsg. It will copy diff to a writenotice and apply the diff to its page. After that, this procedure will set fetchDiffWaitFlag to 0.
+* parameters
+*	msg : msg to be handled
 **/
 void handleGrantDiffMsg(mimsg_t *msg){
+	if(msg == NULL){
+		return;
+	}
+	int hostid = msg->from;
+	int *timestamp = (int *)msg->data; 
+	int pageIndex = *((int *)(msg->data + sizeof(int) * MAX_HOST_NUM));
+	void *diffAddress = msg->data + sizeof(int) * (MAX_HOST_NUM + 1);
 	
+	int i;
+	int find = 1;
+	writenotice_t *wn = pageArray[pageIndex].notices[hostid];
+	while(wn != NULL){
+		find = 1;
+		for(i = 0; i < MAX_HOST_NUM; i++){
+			if(wn->interval->timestamp[i] != timestamp[i]){
+				find = 0;
+				break;
+			}
+		}
+		if(find == 1){
+			break;
+		}
+		wn = wn->nextInPage;
+	}
+	if(wn != NULL && find == 1){//find writenotice
+		if(wn->diffAddress == NULL){//diff has not been created
+			wn->diffAddress = malloc(PAGESIZE);
+			memset(wn->diffAddress, 0, PAGESIZE);
+
+			bcopy(diffAddress, wn->diffAddress, PAGESIZE);
+		}
+		applyDiff(pageArray[pageIndex].address, diffAddress);
+	}
+	fetchDiffWaitFlag = 0;
+	return;
 }
 
 
@@ -419,7 +503,7 @@ void handleGrantPageMsg(mimsg_t *msg){
 
 
 /**
-* This method will be invoked by dispatchMsg. It will incoporates all wnPacket_t in 'msg' to local data structure.
+* This procedure will be invoked by dispatchMsg. It will incoporates all wnPacket_t in 'msg' to local data structure.
 * parameters
 *	msg : msg to be handled  
 **/

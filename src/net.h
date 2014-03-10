@@ -41,7 +41,7 @@ typedef struct {
 		int recv_maxfd;
 	} netmanager;
 
-typedef enum {ACQ_LOCK, RLS_LOCK, GRANT_LOCK, ENTER_BARRIER, EXIT_BARRIER, GRANT_WN_I} command_t;
+typedef enum {ACQ_LOCK, RLS_LOCK, GRANT_LOCK, ENTER_BARRIER, EXIT_BARRIER, GRANT_WN_I, GRANT_DIFF} command_t;
 
 void initnet();
 int createSocket(short int port, int isRecv, int bufSize);

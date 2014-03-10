@@ -767,6 +767,11 @@ static char *test_grantDiff(){
 	memset(pageArray, 0, sizeof(page_t) * MAX_PAGE_NUM);
 	memset(procArray, 0, sizeof(proc_t) * MAX_HOST_NUM);
 
+	pageArray[0].state = WRITE;
+	pageArray[1].state = RDONLY;
+	pageArray[2].state = UNMAP;
+	pageArray[3].state = MISS;
+
 	myhostid = 0;
 	hostnum = 4;
 	interval_t *interval1 = malloc(sizeof(interval_t));
@@ -789,27 +794,60 @@ static char *test_grantDiff(){
 
 	writenotice_t *wn1 = malloc(sizeof(writenotice_t));
 	memset(wn1, 0, sizeof(writenotice_t));
-	wn1->interval = interval2;
+	wn1->interval = interval3;
 	wn1->pageIndex = 0;
-	interval2->notices = wn1;
+	interval3->notices = wn1;
 	pageArray[0].notices[myhostid] = wn1;
 
 	writenotice_t *wn2 = malloc(sizeof(writenotice_t));
 	memset(wn2, 0, sizeof(writenotice_t));
-	wn2->interval = interval2;
+	wn2->interval = interval3;
 	wn2->pageIndex = 1;
-	interval2->notices->nextInInterval = wn2;
+	interval3->notices->nextInInterval = wn2;
 	pageArray[1].notices[myhostid] = wn2;
+
+	writenotice_t *wn3 = malloc(sizeof(writenotice_t));
+	memset(wn3, 0, sizeof(writenotice_t));
+	wn3->interval = interval2;
+	wn2->pageIndex = 0;
+	interval2->notices = wn3;
+	pageArray[0].notices[myhostid]->nextInPage = wn3;
+
 
 	pageArray[0].address = malloc(PAGESIZE);
 	memset(pageArray[0].address, 0, PAGESIZE);
-	pageArray[0].address[0] = 0;
-	pageArray[0].address[1] = 1;
-	pageArray[0].address[2] = 2;
-	pageArray[0].address[3] = 3;
-	pageArray[0].address[4] = 4;
+	((char *)pageArray[0].address)[0] = 0;
+	((char *)pageArray[0].address)[1] = 1;
+	((char *)pageArray[0].address)[2] = 2;
+	((char *)pageArray[0].address)[3] = 3;
+	((char *)pageArray[0].address)[4] = 4;
 	pageArray[0].twinPage = malloc(PAGESIZE);
 	memset(pageArray[0].twinPage, 0, PAGESIZE);
+
+	pageArray[1].address = malloc(PAGESIZE);
+	memset(pageArray[1].address, 0, PAGESIZE);
+	pageArray[1].notices[myhostid]->diffAddress = malloc(PAGESIZE);
+	memset(pageArray[1].notices[myhostid]->diffAddress, 0, PAGESIZE);
+	((char *)wn2->diffAddress)[0] = 1;
+	((char *)wn2->diffAddress)[1] = 2;
+	((char *)wn2->diffAddress)[2] = 3;
+	((char *)wn2->diffAddress)[3] = 4;
+	((char *)wn2->diffAddress)[4] = 5;
+	((char *)wn2->diffAddress)[5] = 6;
+	((char *)wn2->diffAddress)[6] = 7;
+	((char *)wn2->diffAddress)[7] = 8;
+
+	wn3->diffAddress = malloc(PAGESIZE);
+	memset(wn3->diffAddress, 0, PAGESIZE);
+	((char *)wn3->diffAddress)[0] = 0;
+	((char *)wn3->diffAddress)[1] = 1;
+	((char *)wn3->diffAddress)[2] = 2;
+	((char *)wn3->diffAddress)[3] = 3;
+	((char *)wn3->diffAddress)[4] = 4;
+	((char *)wn3->diffAddress)[5] = 5;
+	((char *)wn3->diffAddress)[6] = 6;
+	((char *)wn3->diffAddress)[7] = 7;
+
 
 	parametertype = 1;
 	sendMsgCalled = 0;
@@ -823,10 +861,330 @@ static char *test_grantDiff(){
 	}
 	timestamp[0] = 1;
 
-	mu_assert("mem209", grantDiff(2, timestamp, 0));
+	mu_assert("mem209", grantDiff(2, timestamp, 0) == 0);
+	mu_assert("mem210", parametertype == 0);
+	mu_assert("mem211", sendMsgCalled == 1);
+	mu_assert("mem212", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem213", msg.from == myhostid);
+	mu_assert("mem214", msg.to == 2);
+	mu_assert("mem215", msg.command == GRANT_DIFF);
+	mu_assert("mem216", ((int *)msg.data)[0] == 1);
+	mu_assert("mem217", ((int *)msg.data)[1] == 0);
+	mu_assert("mem218", ((int *)msg.data)[2] == 0);
+	mu_assert("mem219", ((int *)msg.data)[3] == 0);
+	mu_assert("mem220", ((int *)msg.data)[20] == 0);
+	char *diff = msg.data + sizeof(int)*21;
+	mu_assert("mem221", diff[0] == 0);
+	mu_assert("mem222", diff[1] == 1);
+	mu_assert("mem223", diff[2] == 2);
+	mu_assert("mem224", diff[3] == 3);
+	mu_assert("mem225", diff[4] == 4);
+	mu_assert("mem226", diff[5] == 5);
+	mu_assert("mem227", diff[6] == 6);
+	mu_assert("mem228", diff[7] == 7);
+
+	parametertype = 1;
+	sendMsgCalled = 0;
+	nextFreeMsgInQueueCalled = 0;
+	memset(&msg, 0, sizeof(mimsg_t));
+	
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		timestamp[i] = 0;
+	}
+	timestamp[0] = 2;
+
+	mu_assert("mem229", grantDiff(2, timestamp, 0) == 0);
+	mu_assert("mem230", parametertype == 0);
+	mu_assert("mem231", sendMsgCalled == 1);
+	mu_assert("mem232", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem233", msg.from == myhostid);
+	mu_assert("mem234", msg.to == 2);
+	mu_assert("mem235", msg.command == GRANT_DIFF);
+	mu_assert("mem236", ((int *)msg.data)[0] == 2);
+	mu_assert("mem237", ((int *)msg.data)[1] == 0);
+	mu_assert("mem238", ((int *)msg.data)[2] == 0);
+	mu_assert("mem239", ((int *)msg.data)[3] == 0);
+	mu_assert("mem240", ((int *)msg.data)[20] == 0);
+	diff = msg.data + sizeof(int)*21;
+	mu_assert("mem241", diff[0] == 0);
+	mu_assert("mem242", diff[1] == 1);
+	mu_assert("mem243", diff[2] == 2);
+	mu_assert("mem244", diff[3] == 3);
+	mu_assert("mem245", diff[4] == 4);
+
+	mu_assert("mem246", pageArray[0].twinPage == NULL);
+
+	parametertype = 1;
+	sendMsgCalled = 0;
+	nextFreeMsgInQueueCalled = 0;
+	memset(&msg, 0, sizeof(mimsg_t));
+	
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		timestamp[i] = 0;
+	}
+	timestamp[0] = 2;
+
+	mu_assert("mem247", grantDiff(2, timestamp, 1) == 0);
+	mu_assert("mem248", parametertype == 0);
+	mu_assert("mem249", sendMsgCalled == 1);
+	mu_assert("mem250", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem251", msg.from == myhostid);
+	mu_assert("mem252", msg.to == 2);
+	mu_assert("mem253", msg.command == GRANT_DIFF);
+	mu_assert("mem254", ((int *)msg.data)[0] == 2);
+	mu_assert("mem255", ((int *)msg.data)[1] == 0);
+	mu_assert("mem256", ((int *)msg.data)[2] == 0);
+	mu_assert("mem257", ((int *)msg.data)[3] == 0);
+	mu_assert("mem258", ((int *)msg.data)[20] == 1);
+	diff = msg.data + sizeof(int)*21;
+	mu_assert("mem259", diff[0] == 1);
+	mu_assert("mem260", diff[1] == 2);
+	mu_assert("mem261", diff[2] == 3);
+	mu_assert("mem262", diff[3] == 4);
+	mu_assert("mem263", diff[4] == 5);
+	mu_assert("mem264", diff[5] == 6);
+	mu_assert("mem265", diff[6] == 7);
+	mu_assert("mem266", diff[7] == 8);
+
+
+	mu_assert("mem267", grantDiff(-1, timestamp, 1) == -1);
+	mu_assert("mem268", grantDiff(4, timestamp, 1) == -1);
+	mu_assert("mem269", grantDiff(0, timestamp, 1) == -1);
+	mu_assert("mem270", grantDiff(2, NULL, 1) == -1);
+	mu_assert("mem271", grantDiff(2, timestamp, -1) == -1);
+	mu_assert("mem272", grantDiff(2, timestamp, MAX_PAGE_NUM) == -1);
+	mu_assert("mem273", grantDiff(2, timestamp, 3) == -1);
+	mu_assert("mem274", grantDiff(2, timestamp, 2) == -1);
+	timestamp[2] = 3;
+	mu_assert("mem275", grantDiff(2, timestamp, 1) == -2);
+	
 	return 0;
 }
 
+
+static char *test_handleGrantDiffMsg(){
+	extern page_t pageArray[MAX_PAGE_NUM];
+	extern proc_t procArray[MAX_HOST_NUM];
+	extern int fetchDiffWaitFlag;
+
+	memset(pageArray, 0, sizeof(page_t) * MAX_PAGE_NUM);
+	memset(procArray, 0, sizeof(proc_t) * MAX_HOST_NUM);
+
+	pageArray[0].state = WRITE;
+	pageArray[1].state = RDONLY;
+	pageArray[2].state = UNMAP;
+	pageArray[3].state = MISS;
+
+	myhostid = 0;
+	hostnum = 4;
+	interval_t *interval1 = malloc(sizeof(interval_t));
+	memset(interval1, 0, sizeof(interval_t));
+	procArray[myhostid].intervalList = interval1;
+
+	interval_t *interval2 = malloc(sizeof(interval_t));
+	memset(interval2, 0, sizeof(interval_t));
+	interval2->timestamp[0] = 1;
+	interval2->next = procArray[myhostid].intervalList;
+	procArray[myhostid].intervalList->prev = interval2;
+	procArray[myhostid].intervalList = interval2;
+
+	interval_t *interval3 = malloc(sizeof(interval_t));
+	memset(interval3, 0, sizeof(interval_t));
+	interval3->timestamp[0] = 2;
+	interval3->next = procArray[myhostid].intervalList;
+	procArray[myhostid].intervalList->prev = interval3;
+	procArray[myhostid].intervalList = interval3;
+
+	writenotice_t *wn1 = malloc(sizeof(writenotice_t));
+	memset(wn1, 0, sizeof(writenotice_t));
+	wn1->interval = interval3;
+	wn1->pageIndex = 0;
+	interval3->notices = wn1;
+	pageArray[0].notices[2] = wn1;
+
+	writenotice_t *wn2 = malloc(sizeof(writenotice_t));
+	memset(wn2, 0, sizeof(writenotice_t));
+	wn2->interval = interval3;
+	wn2->pageIndex = 1;
+	interval3->notices->nextInInterval = wn2;
+	pageArray[1].notices[2] = wn2;
+
+	writenotice_t *wn3 = malloc(sizeof(writenotice_t));
+	memset(wn3, 0, sizeof(writenotice_t));
+	wn3->interval = interval2;
+	wn2->pageIndex = 0;
+	interval2->notices = wn3;
+	pageArray[0].notices[2]->nextInPage = wn3;
+
+
+	pageArray[0].address = malloc(PAGESIZE);
+	memset(pageArray[0].address, 0, PAGESIZE);
+	((char *)pageArray[0].address)[0] = 0;
+	((char *)pageArray[0].address)[1] = 1;
+	((char *)pageArray[0].address)[2] = 2;
+	((char *)pageArray[0].address)[3] = 3;
+	((char *)pageArray[0].address)[4] = 4;
+
+	pageArray[1].address = malloc(PAGESIZE);
+	memset(pageArray[1].address, 0, PAGESIZE);
+
+	int timestamp[MAX_HOST_NUM];
+	int i;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		timestamp[i] = 0;
+	}
+	timestamp[0] = 1;
+
+	mimsg_t msg;
+
+	msg.from = 2;
+	msg.to = myhostid;
+	msg.command = GRANT_DIFF;
+	
+	int pageIndex = 0;
+	char *diff = (char *)malloc(PAGESIZE);
+	memset(diff, 0, PAGESIZE);
+	diff[0] = 0;
+	diff[1] = 1;
+	diff[2] = 2;
+	diff[3] = 3;
+	diff[4] = 4;
+	diff[5] = 5;
+	diff[6] = 6;
+	diff[7] = 7;
+
+	apendMsgData(&msg, (char *)timestamp, sizeof(int) * MAX_HOST_NUM);
+	apendMsgData(&msg, (char *)&pageIndex, sizeof(int));
+	apendMsgData(&msg, diff, PAGESIZE);
+	
+	fetchDiffWaitFlag = 1;
+	handleGrantDiffMsg(&msg);
+
+	mu_assert("mem276", wn3->diffAddress != NULL);
+	mu_assert("mem276.1", ((char *)wn3->diffAddress)[0] == 0);
+	mu_assert("mem276.2", ((char *)wn3->diffAddress)[1] == 1);
+	mu_assert("mem276.3", ((char *)wn3->diffAddress)[2] == 2);
+	mu_assert("mem276.4", ((char *)wn3->diffAddress)[3] == 3);
+	mu_assert("mem276.5", ((char *)wn3->diffAddress)[4] == 4);
+	mu_assert("mem276.6", ((char *)wn3->diffAddress)[5] == 5);
+	mu_assert("mem276.7", ((char *)wn3->diffAddress)[6] == 6);
+	mu_assert("mem276.8", ((char *)wn3->diffAddress)[7] == 7);
+	mu_assert("mem277", ((char *)pageArray[0].address)[0] == 0);
+	mu_assert("mem278", ((char *)pageArray[0].address)[1] == 2);
+	mu_assert("mem279", ((char *)pageArray[0].address)[2] == 4);
+	mu_assert("mem280", ((char *)pageArray[0].address)[3] == 6);
+	mu_assert("mem281", ((char *)pageArray[0].address)[4] == 8);
+	mu_assert("mem282", ((char *)pageArray[0].address)[5] == 5);
+	mu_assert("mem283", ((char *)pageArray[0].address)[6] == 6);
+	mu_assert("mem284", ((char *)pageArray[0].address)[7] == 7);
+	mu_assert("mem285", ((char *)pageArray[0].address)[8] == 0);
+	mu_assert("mem286", fetchDiffWaitFlag == 0);
+
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		timestamp[i] = 0;
+	}
+	timestamp[0] = 2;
+
+	memset(&msg, 0, sizeof(mimsg_t));
+	msg.from = 2;
+	msg.to = myhostid;
+	msg.command = GRANT_DIFF;
+	
+	pageIndex = 0;
+	diff = (char *)malloc(PAGESIZE);
+	memset(diff, 0, PAGESIZE);
+	diff[0] = 0;
+	diff[1] = -1;
+	diff[2] = -2;
+	diff[3] = -3;
+	diff[4] = -4;
+	diff[5] = -5;
+	diff[6] = -6;
+	diff[7] = -7;
+
+	apendMsgData(&msg, (char *)timestamp, sizeof(int) * MAX_HOST_NUM);
+	apendMsgData(&msg, (char *)&pageIndex, sizeof(int));
+	apendMsgData(&msg, diff, PAGESIZE);
+	
+	fetchDiffWaitFlag = 1;
+	handleGrantDiffMsg(&msg);
+
+	mu_assert("mem287", wn1->diffAddress != NULL);
+	mu_assert("mem287.1", ((char *)wn1->diffAddress)[0] == 0);
+	mu_assert("mem287.2", ((char *)wn1->diffAddress)[1] == -1);
+	mu_assert("mem287.3", ((char *)wn1->diffAddress)[2] == -2);
+	mu_assert("mem287.4", ((char *)wn1->diffAddress)[3] == -3);
+	mu_assert("mem287.5", ((char *)wn1->diffAddress)[4] == -4);
+	mu_assert("mem287.6", ((char *)wn1->diffAddress)[5] == -5);
+	mu_assert("mem287.7", ((char *)wn1->diffAddress)[6] == -6);
+	mu_assert("mem287.8", ((char *)wn1->diffAddress)[7] == -7);
+	mu_assert("mem288", ((char *)pageArray[0].address)[0] == 0);
+	mu_assert("mem289", ((char *)pageArray[0].address)[1] == 1);
+	mu_assert("mem290", ((char *)pageArray[0].address)[2] == 2);
+	mu_assert("mem291", ((char *)pageArray[0].address)[3] == 3);
+	mu_assert("mem292", ((char *)pageArray[0].address)[4] == 4);
+	mu_assert("mem293", ((char *)pageArray[0].address)[5] == 0);
+	mu_assert("mem294", ((char *)pageArray[0].address)[6] == 0);
+	mu_assert("mem295", ((char *)pageArray[0].address)[7] == 0);
+	mu_assert("mem296", ((char *)pageArray[0].address)[8] == 0);
+	mu_assert("mem297", fetchDiffWaitFlag == 0);
+
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		timestamp[i] = 0;
+	}
+	timestamp[0] = 2;
+
+	memset(&msg, 0, sizeof(mimsg_t));
+	msg.from = 2;
+	msg.to = myhostid;
+	msg.command = GRANT_DIFF;
+	
+	pageIndex = 1;
+	diff = (char *)malloc(PAGESIZE);
+	memset(diff, 0, PAGESIZE);
+	diff[0] = 1;
+	diff[1] = 3;
+	diff[2] = 5;
+	diff[3] = 7;
+	diff[4] = 9;
+	diff[5] = 11;
+	diff[6] = 13;
+	diff[7] = 15;
+
+	apendMsgData(&msg, (char *)timestamp, sizeof(int) * MAX_HOST_NUM);
+	apendMsgData(&msg, (char *)&pageIndex, sizeof(int));
+	apendMsgData(&msg, diff, PAGESIZE);
+	
+	fetchDiffWaitFlag = 1;
+	handleGrantDiffMsg(&msg);
+
+	mu_assert("mem298", wn2->diffAddress != NULL);
+	mu_assert("mem298.1", ((char *)wn2->diffAddress)[0] == 1);
+	mu_assert("mem298.2", ((char *)wn2->diffAddress)[1] == 3);
+	mu_assert("mem298.3", ((char *)wn2->diffAddress)[2] == 5);
+	mu_assert("mem298.4", ((char *)wn2->diffAddress)[3] == 7);
+	mu_assert("mem298.5", ((char *)wn2->diffAddress)[4] == 9);
+	mu_assert("mem298.6", ((char *)wn2->diffAddress)[5] == 11);
+	mu_assert("mem298.7", ((char *)wn2->diffAddress)[6] == 13);
+	mu_assert("mem298.8", ((char *)wn2->diffAddress)[7] == 15);
+	mu_assert("mem299", ((char *)pageArray[1].address)[0] == 1);
+	mu_assert("mem300", ((char *)pageArray[1].address)[1] == 3);
+	mu_assert("mem301", ((char *)pageArray[1].address)[2] == 5);
+	mu_assert("mem302", ((char *)pageArray[1].address)[3] == 7);
+	mu_assert("mem303", ((char *)pageArray[1].address)[4] == 9);
+	mu_assert("mem304", ((char *)pageArray[1].address)[5] == 11);
+	mu_assert("mem305", ((char *)pageArray[1].address)[6] == 13);
+	mu_assert("mem306", ((char *)pageArray[1].address)[7] == 15);
+	mu_assert("mem307", ((char *)pageArray[1].address)[8] == 0);
+	mu_assert("mem308", fetchDiffWaitFlag == 0);
+
+	fetchDiffWaitFlag = 1;
+	handleGrantDiffMsg(NULL);
+	mu_assert("mem309", fetchDiffWaitFlag == 1);
+
+
+	return 0;
+}
 
 static char *all_tests(){
 	mu_run_test(test_isAfterInterval);
@@ -841,6 +1199,7 @@ static char *all_tests(){
 	mu_run_test(test_grantWNI);
 	mu_run_test(test_handleGrantWNIMsg);
 	mu_run_test(test_grantDiff);
+	mu_run_test(test_handleGrantDiffMsg);
 	return 0;
 }
 
