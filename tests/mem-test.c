@@ -1186,6 +1186,146 @@ static char *test_handleGrantDiffMsg(){
 	return 0;
 }
 
+
+static char *test_grantPage(){
+	extern page_t pageArray[MAX_PAGE_NUM];
+	extern proc_t procArray[MAX_HOST_NUM];
+	extern int parametertype;
+	extern int sendMsgCalled; 
+	extern int nextFreeMsgInQueueCalled;
+	extern mimsg_t msg;
+
+	memset(pageArray, 0, sizeof(page_t) * MAX_PAGE_NUM);
+	memset(procArray, 0, sizeof(proc_t) * MAX_HOST_NUM);
+
+	pageArray[0].state = WRITE;
+	pageArray[1].state = RDONLY;
+	pageArray[2].state = UNMAP;
+	pageArray[3].state = MISS;
+
+	pageArray[0].address = malloc(PAGESIZE);
+	memset(pageArray[0].address, 0, PAGESIZE);
+	((char *)pageArray[0].address)[0] = 0;
+	((char *)pageArray[0].address)[1] = 1;
+	((char *)pageArray[0].address)[2] = 2;
+	((char *)pageArray[0].address)[3] = 3;
+	((char *)pageArray[0].address)[4] = 4;
+
+	pageArray[1].address = malloc(PAGESIZE);
+	memset(pageArray[1].address, 0, PAGESIZE);
+	((char *)pageArray[1].address)[0] = -1;
+	((char *)pageArray[1].address)[1] = -2;
+	((char *)pageArray[1].address)[2] = -3;
+	((char *)pageArray[1].address)[3] = -4;
+	((char *)pageArray[1].address)[4] = -5;
+	((char *)pageArray[1].address)[5] = -6;
+
+	parametertype = 1;	
+	sendMsgCalled = 0;
+	nextFreeMsgInQueueCalled = 0;
+	memset(&msg, 0, sizeof(mimsg_t));
+
+	mu_assert("mem310", grantPage(2, 0) == 0);
+	mu_assert("mem311", parametertype == 0);
+	mu_assert("mem312", sendMsgCalled == 1);
+	mu_assert("mem313", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem314", msg.from == myhostid);
+	mu_assert("mem315", msg.to == 2);
+	mu_assert("mem316", msg.command == GRANT_PAGE);
+	mu_assert("mem317", msg.size == (PAGESIZE + sizeof(int)));
+	mu_assert("mem318", *((int *)msg.data) == 0);
+	void *pageAddress = msg.data + sizeof(int);
+	mu_assert("mem319", ((char *)pageAddress)[0] == 0);
+	mu_assert("mem320", ((char *)pageAddress)[1] == 1);
+	mu_assert("mem321", ((char *)pageAddress)[2] == 2);
+	mu_assert("mem322", ((char *)pageAddress)[3] == 3);
+	mu_assert("mem323", ((char *)pageAddress)[4] == 4);
+	mu_assert("mem324", ((char *)pageAddress)[5] == 0);
+	
+	parametertype = 1;	
+	sendMsgCalled = 0;
+	nextFreeMsgInQueueCalled = 0;
+	memset(&msg, 0, sizeof(mimsg_t));
+
+	mu_assert("mem325", grantPage(2, 1) == 0);
+	mu_assert("mem326", parametertype == 0);
+	mu_assert("mem327", sendMsgCalled == 1);
+	mu_assert("mem328", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem329", msg.from == myhostid);
+	mu_assert("mem330", msg.to == 2);
+	mu_assert("mem331", msg.command == GRANT_PAGE);
+	mu_assert("mem332", msg.size == (PAGESIZE + sizeof(int)));
+	mu_assert("mem333", *((int *)msg.data) == 1);
+	pageAddress = msg.data + sizeof(int);
+	mu_assert("mem334", ((char *)pageAddress)[0] == -1);
+	mu_assert("mem335", ((char *)pageAddress)[1] == -2);
+	mu_assert("mem336", ((char *)pageAddress)[2] == -3);
+	mu_assert("mem337", ((char *)pageAddress)[3] == -4);
+	mu_assert("mem338", ((char *)pageAddress)[4] == -5);
+	mu_assert("mem339", ((char *)pageAddress)[5] == -6);
+	mu_assert("mem340", ((char *)pageAddress)[6] == 0);
+
+	mu_assert("mem341", grantPage(-1, 1) == -1);
+	mu_assert("mem342", grantPage(hostnum, 1) == -1);
+	mu_assert("mem343", grantPage(myhostid, 1) == -1);
+	mu_assert("mem344", grantPage(2, -1) == -1);
+	mu_assert("mem345", grantPage(2, MAX_PAGE_NUM) == -1);
+	mu_assert("mem346", grantPage(2, 3) == -1);
+	
+	return 0;
+}
+
+
+static char *test_handleGrantPageMsg(){
+	extern page_t pageArray[MAX_PAGE_NUM];
+	extern long mapfd;
+	extern int fetchPageWaitFlag;
+
+	memset(pageArray, 0, sizeof(page_t) * MAX_PAGE_NUM);
+	mapfd = open("/dev/zero", O_RDWR, 0);
+
+	pageArray[0].state = MISS;
+	pageArray[0].address = (void *)START_ADDRESS;
+	pageArray[1].state = MISS;
+	pageArray[1].address = (void *)START_ADDRESS + PAGESIZE;
+	pageArray[2].state = UNMAP;
+	pageArray[3].state = MISS;
+
+	mimsg_t msg;
+	memset(&msg, 0, sizeof(mimsg_t));
+
+	msg.from = 2;
+	msg.to = myhostid;
+	msg.command = GRANT_PAGE;
+	int pageIndex = 0;
+	apendMsgData(&msg, (char *)&pageIndex, sizeof(int));
+	
+	char *pageAddress = (char *)malloc(PAGESIZE);
+	memset(pageAddress, 0, PAGESIZE);
+	pageAddress[0] = 0;
+	pageAddress[1] = 1;
+	pageAddress[2] = 2;
+	pageAddress[3] = 3;
+	pageAddress[4] = 4;
+	apendMsgData(&msg, pageAddress, PAGESIZE);
+	
+	fetchPageWaitFlag = 1;
+	handleGrantPageMsg(&msg);
+	mu_assert("mem347", ((char *)pageArray[0].address)[0] == 0);
+	mu_assert("mem348", ((char *)pageArray[0].address)[1] == 1);
+	mu_assert("mem349", ((char *)pageArray[0].address)[2] == 2);
+	mu_assert("mem350", ((char *)pageArray[0].address)[3] == 3);
+	mu_assert("mem351", ((char *)pageArray[0].address)[4] == 4);
+	mu_assert("mem352", ((char *)pageArray[0].address)[5] == 0);
+	mu_assert("mem353", fetchPageWaitFlag == 0);
+	
+	fetchPageWaitFlag = 1;
+	handleGrantPageMsg(NULL);
+	mu_assert("mem353", fetchPageWaitFlag == 1);
+
+	return 0;
+}
+
 static char *all_tests(){
 	mu_run_test(test_isAfterInterval);
 	mu_run_test(test_createTwinPage);
@@ -1200,6 +1340,8 @@ static char *all_tests(){
 	mu_run_test(test_handleGrantWNIMsg);
 	mu_run_test(test_grantDiff);
 	mu_run_test(test_handleGrantDiffMsg);
+	mu_run_test(test_grantPage);
+	mu_run_test(test_handleGrantPageMsg);
 	return 0;
 }
 

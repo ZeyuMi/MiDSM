@@ -58,6 +58,7 @@ int incorporateWnPacket(wnPacket_t *packet);
 int createWriteNotice(int pageIndex);
 void handleFetchPageMsg(mimsg_t *msg);
 void handleFetchDiffMsg(mimsg_t *msg);
+void handleFetchWNIMsg(mimsg_t *msg);
 void handleGrantDiffMsg(mimsg_t *msg);
 void handleGrantPageMsg(mimsg_t *msg);
 void handleGrantWNIMsg(mimsg_t *msg);

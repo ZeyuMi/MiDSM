@@ -212,15 +212,41 @@ int grantWNI(int hostid, int *timestamp){
 
 
 /**
-* 4
+* This procedure will put a page into a GRANT_PAGE msg, and send it to 'hostid'.
+* parameters
+*	hostid    : destination host
+*	pageIndex : index of a page, which will be sent to 'hostid'
+* return value
+*	 0 --- success
+*	-1 --- parameters error
 **/
 int grantPage(int hostid, int pageIndex){
+	if(hostid < 0 || hostid >= hostnum){
+		return -1;
+	}
+	if(hostid == myhostid){
+		return -1;
+	}
+	if(pageIndex < 0 || pageIndex >= MAX_HOST_NUM){
+		return -1;
+	}
+	if(pageArray[pageIndex].state == UNMAP || pageArray[pageIndex].state == MISS){
+		return -1;
+	}
 
+	mimsg_t *msg = nextFreeMsgInQueue(0);
+	msg->from = myhostid;
+	msg->to = hostid;
+	msg->command = GRANT_PAGE;
+	apendMsgData(msg, (char *)&pageIndex, sizeof(int));
+	apendMsgData(msg, (char *)pageArray[pageIndex].address, PAGESIZE);
+	sendMsg(msg);
+	return 0;
 }
 
 
 /**
-* This procedure will put the diff of page with index 'pageIndex', if diff does not exist, this procedure will create one. Then, it will send a GRANT_DIFF msg to 'hostid'.
+* This procedure will put a diff which comes from a page with index 'pageIndex' to a msg, if diff does not exist, this procedure will create one. Then, it will send a GRANT_DIFF msg to 'hostid'.
 * parameters
 *	hostid    : destination host
 *	timestamp : a pointer to a timestamp array.
@@ -449,6 +475,11 @@ void handleFetchDiffMsg(mimsg_t *msg){
 }
 
 
+void handleFetchWNIMsg(mimsg_t *msg){
+
+}
+
+
 /**
 * This  procedure will be invoked by dispatchMsg. It will copy diff to a writenotice and apply the diff to its page. After that, this procedure will set fetchDiffWaitFlag to 0.
 * parameters
@@ -494,11 +525,19 @@ void handleGrantDiffMsg(mimsg_t *msg){
 
 
 /**
-* 5
+* This procedure will be invoked by dispatchMsg. It will save page content from msg.
+* parameters
+*	msg : msg to be handled  
 **/
 void handleGrantPageMsg(mimsg_t *msg){
-
-
+	if(msg == NULL){
+		return;
+	}
+	int pageIndex = *((int *)msg->data);
+	void *pageAddress = msg->data + sizeof(int);
+	mmap(pageArray[pageIndex].address, PAGESIZE, PROT_READ | PROT_WRITE , MAP_PRIVATE | MAP_FIXED, mapfd, 0);
+	bcopy(pageAddress, pageArray[pageIndex].address, PAGESIZE);
+	fetchPageWaitFlag = 0;
 }
 
 
