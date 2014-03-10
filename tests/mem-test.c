@@ -3,6 +3,7 @@
 #include <string.h>
 #include "../src/mem.h"
 #include "../src/init.h"
+#include "../src/net.h"
 #include "minunit.h"
 int tests_run = 0;
 
@@ -376,10 +377,93 @@ static char *test_addWNIIntoPacketForHost(){
 }
 
 
-static char *test_fetchWritenoticeAndInterval(){
+static char *test_grantWNI(){
 	extern interval_t *intervalNow;
+	extern page_t pageArray[MAX_PAGE_NUM];
+	extern proc_t procArray[MAX_HOST_NUM];
+	extern int parametertype;
+	extern int sendMsgCalled; 
+	extern int nextFreeMsgInQueueCalled;
+	extern mimsg_t msg;
+
+	myhostid = 0;
+	hostnum = 4;
+
+	memset(pageArray, 0, sizeof(page_t) * MAX_PAGE_NUM);
+	memset(pocArray, 0, sizeof(proc_t) * MAX_HOST_NUM);
+
+	interval_t *interval1 = malloc(sizeof(interval_t));
+	memset(interval1, 0, sizeof(interval_t));
+	int i;
+	interval1->timestamp[0] = 1;
+	procArray[0].hostid = 0;	
+	procArray[0].intervalList = interval1;	
+	writenotice_t *lastWnInInterval = NULL;
+	int wnCount = 3;
+	for(i = 0; i < wnCount; i++){
+		writenotice_t *wn = malloc(sizeof(writenotice_t));
+		wn->interval = interval1;
+		wn->nextInPage = pageArray[i].notices[0];
+		pageArray[i].notices[0] = wn;
+		wn->nextInInterval = NULL;
+		if(lastWnInInterval == NULL){
+			interval1->notices = lastWnInInterval = wn;
+		}else{
+			lastWnInInterval->nextInInterval = wn;
+			lastWnInInterval = wn;
+		}
+	}
+
+	interval_t *interval2 = malloc(sizeof(interval_t));
+	memset(interval2, 0, sizeof(interval_t));
+	interval2->timestamp[0] = 2;
+	interval2->timestamp[3] = 1;
+	procArray[3].hostid = 3;	
+	procArray[3].intervalList = interval2;	
+	lastWnInInterval = NULL;
+
+	for(i = 0; i < wnCount; i++){
+		writenotice_t *wn = malloc(sizeof(writenotice_t));
+		wn->interval = interval2;
+		wn->nextInPage = pageArray[i].notices[3];
+		pageArray[i].notices[3] = wn;
+		wn->nextInInterval = NULL;
+		if(lastWnInInterval == NULL){
+			interval2->notices = lastWnInInterval = wn;
+		}else{
+			lastWnInInterval->nextInInterval = wn;
+			lastWnInInterval = wn;
+		}
+	}
+
 	intervalNow = malloc(sizeof(interval_t));
 	memset(intervalNow, 0, sizeof(interval_t));
+	intervalNow->timestamp[0] = 3;
+	intervalNow->timestamp[3] = 2;
+	intervalNow->nextInInterval = procArray[0].intervalList;
+	procArray[0].intervalList = intervalNow;
+
+	int timestamp[MAX_HOST_NUM];
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		timestamp[i] = 0;
+	}
+
+	mu_assert("mem117", grantWNI(2, timestamp) == 0);
+	mu_assert("mem118", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem119", sendMsgCalled == 1);
+	mu_assert("mem120", parametertype == 0);
+	mu_assert("mem121", msg.from == myhostid);
+	mu_assert("mem122", msg.to == 2);
+	mu_assert("mem123", msg.command == FETCH_WN_I);
+	mu_assert("mem124", msg.timestamp[0] == 3);
+	mu_assert("mem125", msg.timestamp[3] == 2);
+	mu_assert("mem126", msg.size == sizeof(wnPacket_t) * 2);
+	//how to convert data to wnPacket_t
+	
+				
+		
+
+
 	
 	return 0;
 }
@@ -395,7 +479,7 @@ static char *all_tests(){
 	mu_run_test(test_addNewInterval);
 	mu_run_test(test_incorporateWnPacket);
 	mu_run_test(test_addWNIIntoPacketForHost);
-	mu_run_test(test_fetchWritenoticeAndInterval);
+	mu_run_test(test_grantWNI);
 	return 0;
 }
 

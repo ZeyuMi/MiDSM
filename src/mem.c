@@ -150,22 +150,18 @@ int fetchDiff(int pageIndex){
 *	-1 --- parameters error
 **/
 int fetchWritenoticeAndInterval(int hostid){
-	if(hostid < 0 || hostid >= hostnum || hostid == myhostid){
-		return -1;
-	}
-	mimsg_t *msg = nextFreeMsgInQueue(0);
-	msg->from = myhostid;
-	msg->to = hostid;
-	int i;
-	for(i = 0; i < MAX_HOST_NUM; i++){
-		msg->timestamp[i] = intervalNow->timestamp[i];
-	}
-	
-	sendMsg(msg);
-	return 0;
 }
 
 
+/**
+* This procedure will send a GRANT_WN_I msg to 'hostid'. It will also append 'intervalNow->timestamp' to msg. All intervals which after 'timestamp' and their related writenotices will also be saved to msg.
+* parameters
+*	hostid    : destination host
+*	timestamp : a pointer to a timestamp array.
+* return value
+*	 0 --- success
+*	-1 --- parameters error
+**/
 int grantWNI(int hostid, int *timestamp){
 
 }
