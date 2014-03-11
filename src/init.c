@@ -5,6 +5,7 @@
 #include "init.h"
 #include "net.h"
 #include "syn.h"
+#include "mem.h"
 
 host_t hosts[MAX_HOST_NUM];
 int hostnum = 0;
@@ -69,6 +70,7 @@ void initLocalEnv(){
 	myhostid = findHostIdByName(user->pw_name);
 	initnet();
 	initsyn();
+	initmem();
 } 
 
 
