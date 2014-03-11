@@ -13,6 +13,7 @@ static char *test_initsyn(){
 	extern int waitFlag;
 	extern int myLocks[LOCK_NUM];
 	extern int barrierFlags[MAX_HOST_NUM];
+	extern int lasthostid;
 
 	initsyn();
 	mu_assert("syn1", locks[0].state == FREE);
@@ -28,6 +29,7 @@ static char *test_initsyn(){
 	mu_assert("syn6", myLocks[200] == 0);
 	mu_assert("syn7", barrierFlags[2] == 0);
 	mu_assert("syn8", barrierFlags[0] == 0);
+	mu_assert("syn8.1", lasthostid == -1);
 	
 	return 0;
 }
@@ -41,18 +43,18 @@ static char *test_graspLock(){
 	hostnum = 4;
 	myhostid = 0;
 			
-	mu_assert("syn9", graspLock(0, 2) == 0);
+	mu_assert("syn9", graspLock(0, 2) == -1);
 	mu_assert("syn10", locks[0].state == LOCKED);
 	mu_assert("syn10.1", locks[0].owner == 2);
 	mu_assert("syn10.2", locks[0].waitingListCount == 0);
 	mu_assert("syn10.3", locks[0].waitingList[0] == -1);
 	mu_assert("syn10.4", graspLock(0, 2) == -4);
 
-	mu_assert("syn11", graspLock(-1, 2) == -1);
-	mu_assert("syn12", graspLock(2000, 2) == -1);
-	mu_assert("syn13", graspLock(2, 5) == -1);
-	mu_assert("syn14", graspLock(2, -1) == -1);
-	mu_assert("syn15", graspLock(-1, -1) == -1);
+	mu_assert("syn11", graspLock(-1, 2) == -5);
+	mu_assert("syn12", graspLock(2000, 2) == -5);
+	mu_assert("syn13", graspLock(2, 5) == -5);
+	mu_assert("syn14", graspLock(2, -1) == -5);
+	mu_assert("syn15", graspLock(-1, -1) == -5);
 
 	mu_assert("syn16", graspLock(1, 2) == -2);
 	mu_assert("syn17", graspLock(6, 2) == -2);
@@ -68,6 +70,14 @@ static char *test_graspLock(){
 	mu_assert("syn23.1", locks[0].waitingList[1] == 1);
 	mu_assert("syn23.2", locks[0].waitingList[2] == -1);
 	mu_assert("syn24", locks[0].waitingListCount == 2);
+
+	locks[12].lasthostid = 2;
+	mu_assert("syn24.1", graspLock(12, 1) == 2);
+	mu_assert("syn24.2", locks[12].state == LOCKED);
+	mu_assert("syn24.3", locks[12].owner == 1);
+	mu_assert("syn24.5", locks[12].waitingListCount == 0);
+	mu_assert("syn24.6", locks[12].waitingList[0] == -1);
+
 	return 0;
 }
 
@@ -80,7 +90,7 @@ static char *test_freeLock(){
 	hostnum = 4;
 	myhostid = 0;
 			
-	mu_assert("syn25", graspLock(0, 2) == 0);
+	mu_assert("syn25", graspLock(0, 2) == -1);
 	mu_assert("syn26", locks[0].state == LOCKED);
 	mu_assert("syn26.1", locks[0].owner == 2);
 	mu_assert("syn26.2", locks[0].waitingList[0] == -1);
@@ -123,7 +133,7 @@ static char *test_freeLock(){
 	mu_assert("syn44", freeLock(2, 1) == -2);
 
 
-	mu_assert("syn47", graspLock(4, 3) == 0);
+	mu_assert("syn47", graspLock(4, 3) == -1);
 	mu_assert("syn48", locks[4].state == LOCKED);
 	mu_assert("syn48.1", locks[4].owner == 3);
 	mu_assert("syn49", freeLock(4, 3) == -5);
@@ -131,7 +141,7 @@ static char *test_freeLock(){
 	mu_assert("syn49.2", locks[4].owner == -1);
 	mu_assert("syn50", locks[4].state == FREE);
 
-	mu_assert("syn50.1", graspLock(4, 3) == 0);
+	mu_assert("syn50.1", graspLock(4, 3) == 3);
 	mu_assert("syn50.2", locks[4].state == LOCKED);
 	mu_assert("syn50.3", locks[4].owner == 3);
 	mu_assert("syn50.4", freeLock(4, 2) == -4);
@@ -183,6 +193,7 @@ static char *test_grantLock(){
 	extern parametertype;
 	extern sendMsgCalled;
 	extern nextFreeMsgInQueueCalled;
+	extern milock_t locks[LOCK_NUM];
 
 	initsyn();
 	sendMsgCalled = 0;
@@ -221,8 +232,21 @@ static char *test_grantLock(){
 	mu_assert("syn74", parametertype == 0);
 	mu_assert("syn75", msg.from == 0);
 	mu_assert("syn76", msg.to == 1);
-	mu_assert("syn77", msg.command == GRANT);
+	mu_assert("syn77", msg.command == GRANT_LOCK);
 	mu_assert("syn78", strtol(msg.data, NULL, 10) == 8);
+	mu_assert("syn79", *((int *)(msg.data + sizeof(int))) == -1);
+
+	memset(&msg, 0, sizeof(mimsg_t));
+	locks[8].lasthostid = 2;
+	grantLock(8, 1);	
+	mu_assert("syn80", sendMsgCalled == 1);
+	mu_assert("syn81", nextFreeMsgInQueueCalled == 1);
+	mu_assert("syn82", parametertype == 0);
+	mu_assert("syn83", msg.from == 0);
+	mu_assert("syn84", msg.to == 1);
+	mu_assert("syn85", msg.command == GRANT_LOCK);
+	mu_assert("syn86", strtol(msg.data, NULL, 10) == 8);
+	mu_assert("syn87", *((int *)(msg.data + sizeof(int))) == 2);
 
 	return 0;
 }

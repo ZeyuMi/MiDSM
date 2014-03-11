@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "syn.h"
+#include "mem.h"
 
 extern int myhostid;
 extern int hostnum;
@@ -9,6 +10,7 @@ milock_t locks[LOCK_NUM];
 int waitFlag;
 int myLocks[LOCK_NUM];
 int barrierFlags[MAX_HOST_NUM];
+int lasthostid;
 
 
 /**
@@ -32,6 +34,7 @@ void initsyn(){
 	for(i = 0; i < MAX_HOST_NUM; i++){
 		barrierFlags[i] = 0;
 	}
+	lasthostid = -1;
 }
 
 
@@ -60,8 +63,15 @@ int mi_lock(int lockno){
 			enableSigio();
 			while(waitFlag)
 				;
+			if(lasthostid != -1 && lasthostid != myhostid){
+				fetchWritenoticeAndInterval(lasthostid);
+				lasthostid = -1;
+			}
 			result = 0;
-		}else{
+		}else if(result >= -1){
+			if(result != -1 && result != myhostid){
+				fetchWritenoticeAndInterval(result);
+			}
 			myLocks[lockno] = 1;
 			result = 0;
 			enableSigio();
@@ -79,6 +89,10 @@ int mi_lock(int lockno){
 		enableSigio();
 		while(waitFlag)
 			;
+		if(lasthostid != -1 && lasthostid != myhostid){
+			fetchWritenoticeAndInterval(lasthostid);
+			lasthostid = -1;
+		}
 		result = 0;
 	}
 	return result;
@@ -167,7 +181,7 @@ void handleAcquireMsg(mimsg_t *msg){
 	int hostid = msg->from;
 	if((lockno >= 0) && (lockno <= LOCK_NUM)){
 		int result = graspLock(lockno, hostid);
-		if(result == 0){
+		if(result >= -1){
 			grantLock(lockno, hostid);	
 		}
 	}	
@@ -186,6 +200,7 @@ void handleReleaseMsg(mimsg_t *msg){
 		int result = freeLock(lockno, hostid);
 		if(result >= 0){
 			if(result == myhostid){
+				lasthostid = hostid;
 				waitFlag = 0;
 				myLocks[lockno] = 1;
 			}else{
@@ -238,6 +253,7 @@ void handleGrantMsg(mimsg_t *msg){
 	}
 	int lockno = strtol(msg->data, NULL, 10);
 	if((lockno >= 0) && (lockno <= LOCK_NUM)){
+		lasthostid = *((int *)(msg->data+sizeof(int)));
 		myLocks[lockno] = 1;
 		waitFlag = 0;
 	}
@@ -250,15 +266,16 @@ void handleGrantMsg(mimsg_t *msg){
 *	lockno : index of lock in locks array
 *	hostid : host which want to acquire this lock
 * return value
-*	 0 --- success
-*	-1 --- parameters error
+*	>=0 --- success and the return value is lasthostid
+*	-1 --- success and no lasthostid
 *	-2 --- this node has no right to manipulate this lock
 *	-3 --- lock is busy
 *	-4 --- this host has already owned this lock
+*	-5 --- parameters error
 **/
 int graspLock(int lockno, int hostid){
 	if(lockno < 0 || lockno >= LOCK_NUM || hostid < 0 || hostid >= hostnum){
-		return -1;
+		return -5;
 	}
 	if((lockno % hostnum) != myhostid){
 		return -2;
@@ -266,7 +283,7 @@ int graspLock(int lockno, int hostid){
 	if(locks[lockno].state == FREE){
 		locks[lockno].state = LOCKED;
 		locks[lockno].owner = hostid;
-		return 0;
+		return locks[lockno].lasthostid;
 	}else{
 		if(locks[lockno].owner == hostid){
 			return -4;
@@ -301,6 +318,7 @@ void grantLock(int lockno, int hostid){
 	char buffer[20];
 	sprintf(buffer, "%d", lockno);
 	apendMsgData(msg, buffer, sizeof(int));
+	apendMsgData(msg, (char *)&(locks[lockno].lasthostid), sizeof(int));
 	sendMsg(msg);
 }
 

@@ -27,3 +27,11 @@ int apendMsgData(mimsg_t *msg, char *data, int len){
 	msg->size += len;
 	return 0;
 }
+
+void disableSigio(){
+
+}
+
+void enableSigio(){
+
+}
