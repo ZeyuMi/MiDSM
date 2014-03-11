@@ -83,8 +83,11 @@ void init_mem(){
 }
 
 
+/**
+* 
+**/
 int fetchPage(int pageIndex){
-
+		
 }
 
 
@@ -136,6 +139,9 @@ int freeTwinPage(int pageIndex){
 }
 
 
+/**
+* 5 
+**/
 int fetchDiff(int pageIndex){
 
 }
@@ -464,17 +470,26 @@ int createWriteNotice(int pageIndex){
 }
 
 
+/**
+* 2
+**/
 void handleFetchPageMsg(mimsg_t *msg){
 
 
 }
 
 
+/**
+* 6
+**/
 void handleFetchDiffMsg(mimsg_t *msg){
 
 }
 
 
+/**
+* 4
+**/
 void handleFetchWNIMsg(mimsg_t *msg){
 
 }
