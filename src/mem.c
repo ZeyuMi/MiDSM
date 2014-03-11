@@ -19,24 +19,33 @@ void *globalAddress;
 
 void segv_handler(int signo, siginfo_t *info, void *context){
 	void *faultaddress = info->si_addr;
-	void *addr = ((long)faultaddress % PAGESIZE == 0) ? faultaddress : (void *)((long)faultaddress / PAGESIZE * PAGESIZE) ;
-	/*check whether addr is in valid range*/
-	void *maxaddr = pageArray[pagenum-1].address + PAGESIZE;
-	if(addr > maxaddr){
-		printf("invalid address\n");
+	void *addr = ((long)faultaddress % PAGESIZE == 0) ? faultaddress : (void *)((long)faultaddress / PAGESIZE * PAGESIZE);
+	int pageIndex = ((long)addr - START_ADDRESS) / PAGESIZE;
+	if(pageIndex < 0 || pageIndex >= MAX_PAGE_NUM){
+		fprintf(stderr, "Segmentation fault\n");
 		exit(1);
 	}
-	int pageindex = ((long)addr - START_ADDRESS) / PAGESIZE;
-	if(pageArray[pageindex].state == RDONLY){
-		pageArray[pageindex].state = WRITE;
-		if(mprotect(pageArray[pageindex].address, PAGESIZE, PROT_READ | PROT_WRITE) == -1)
-			printf("error\n");
-		/*create twin page*/
-		printf("read to write\n");
-
-
-	}else if(pageArray[pageindex].state == MISS){
-
+	if(pageArray[pageIndex].state == RDONLY){
+		createTwinPage(pageIndex);
+		createWriteNotice(pageIndex);
+		pageArray[pageIndex].state = WRITE;
+		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ | PROT_WRITE) == -1)
+			fprintf(stderr, "RDONLY mprotect error\n");
+	}else if(pageArray[pageIndex].state == MISS){
+		fetchPage(pageIndex);	
+		pageArray[pageIndex].state = RDONLY;
+		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
+			fprintf(stderr, "MISS mprotect error\n");
+	}else if(pageArray[pageIndex].state == WRITE){
+		;		// no action
+	}else if(pageArray[pageIndex].state == INVALID){
+		fetchDiff(pageIndex);	
+		pageArray[pageIndex].state = RDONLY;
+		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
+			fprintf(stderr, "INVALID mprotect error\n");
+	}else{
+		fprintf(stderr, "Segmentation fault\n");
+		exit(1);
 	}	
 }
 
@@ -50,19 +59,27 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 *	NULL     --- no enough memory to allocate or parameters error
 **/
 void *mi_alloc(int size){
+	if(size <= 0){
+		return NULL;
+	}
 	int rsize = (size % PAGESIZE == 0) ? size : (size / PAGESIZE + 1) * PAGESIZE;
 	int allocesize = rsize;
-	if(rsize + globalAddress > (void *)MAX_MEM_SIZE)
+	if(rsize + globalAddress > (void *)MAX_MEM_SIZE){
 		return NULL;
+	}
 	while(allocesize > 0){
-		void *a = mmap((void *)(START_ADDRESS + globalAddress), 4096, PROT_READ , MAP_PRIVATE | MAP_FIXED, mapfd, 0);	
-		printf("%p\n", a);
+		if((pagenum % hostnum) == myhostid){
+			mmap(START_ADDRESS + globalAddress, 4096, PROT_READ , MAP_PRIVATE | MAP_FIXED, mapfd, 0);	
+			pageArray[pagenum].state = RDONLY;
+		}else{
+			pageArray[pagenum].state = MISS;
+			mprotect(START_ADDRESS + globalAddress, PAGESIZE, PROT_READ);
+		}
 		pageArray[pagenum].address = START_ADDRESS + globalAddress;
-		pageArray[pagenum].state = RDONLY;
 		pagenum++;
 		allocesize -= PAGESIZE;
+		globalAddress += PAGESIZE;
 	}
-	globalAddress += rsize;
 	return START_ADDRESS + globalAddress - rsize;
 }
 

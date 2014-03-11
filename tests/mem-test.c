@@ -1455,34 +1455,150 @@ static char *test_mi_alloc(){
 //normal condition 1 page
 	void *address = mi_alloc(PAGESIZE);
 	mu_assert("mem376", address != NULL);
-	mu_assert("mem376", pageArray[0].state == RDONLY);
-	mu_assert("mem376", pageArray[0].address == address);
-	mu_assert("mem376", pageArray[0].notices[0] == NULL);
-	mu_assert("mem376", pageArray[0].twinPage == NULL);
-	mu_assert("mem376", pageArray[0].startAddress == NULL);
-	mu_assert("mem376", pagenum == 1);
-	mu_assert("mem376", globalAddress == (address+PAGESIZE));
+	mu_assert("mem378", pageArray[0].state == RDONLY);
+	mu_assert("mem379", pageArray[0].address == address);
+	mu_assert("mem380", pageArray[0].notices[0] == NULL);
+	mu_assert("mem381", pageArray[0].twinPage == NULL);
+	mu_assert("mem382", pageArray[0].startInterval == NULL);
+	mu_assert("mem383", pagenum == 1);
+	mu_assert("mem384", globalAddress == (void *)PAGESIZE);
 //normal condition small than 1 page
 	address = mi_alloc(1);
-//stop here
-	mu_assert("mem376", address != NULL);
-	mu_assert("mem376", pageArray[0].state == RDONLY);
-	mu_assert("mem376", pageArray[0].address == address);
-	mu_assert("mem376", pageArray[0].notices[0] == NULL);
-	mu_assert("mem376", pageArray[0].twinPage == NULL);
-	mu_assert("mem376", pageArray[0].startAddress == NULL);
-	mu_assert("mem376", pagenum == 1);
-	mu_assert("mem376", globalAddress == (address+PAGESIZE));
-
+	mu_assert("mem385", address != NULL);
+	mu_assert("mem386", pageArray[1].state == MISS);
+	mu_assert("mem387", pageArray[1].address == address);
+	mu_assert("mem388", pageArray[1].notices[0] == NULL);
+	mu_assert("mem389", pageArray[1].twinPage == NULL);
+	mu_assert("mem390", pageArray[1].startInterval == NULL);
+	mu_assert("mem391", pagenum == 2);
+	mu_assert("mem392", globalAddress == (void *)(2*PAGESIZE));
 //normal condition slightly bigger than 1 page
+	address = mi_alloc(PAGESIZE+1);
+	mu_assert("mem393", address != NULL);
+	mu_assert("mem394", pageArray[2].state == MISS);
+	mu_assert("mem395", pageArray[2].address == address);
+	mu_assert("mem396", pageArray[2].notices[0] == NULL);
+	mu_assert("mem397", pageArray[2].twinPage == NULL);
+	mu_assert("mem398", pageArray[2].startInterval == NULL);
+	mu_assert("mem399", pageArray[3].state == MISS);
+	mu_assert("mem400", pageArray[3].address == (address + PAGESIZE));
+	mu_assert("mem401", pageArray[3].notices[0] == NULL);
+	mu_assert("mem402", pageArray[3].twinPage == NULL);
+	mu_assert("mem403", pageArray[3].startInterval == NULL);
+	mu_assert("mem404", pagenum == 4);
+	mu_assert("mem405", globalAddress == (void *)(PAGESIZE*4));
 //normal condition 5 page
+	address = mi_alloc(PAGESIZE*5);
+	mu_assert("mem406", address != NULL);
+	mu_assert("mem407", pageArray[4].state == RDONLY);
+	mu_assert("mem408", pageArray[4].address == address);
+	mu_assert("mem409", pageArray[4].notices[0] == NULL);
+	mu_assert("mem410", pageArray[4].twinPage == NULL);
+	mu_assert("mem411", pageArray[4].startInterval == NULL);
+	mu_assert("mem412", pageArray[5].state == MISS);
+	mu_assert("mem413", pageArray[5].address == (address + PAGESIZE));
+	mu_assert("mem414", pageArray[5].notices[0] == NULL);
+	mu_assert("mem415", pageArray[5].twinPage == NULL);
+	mu_assert("mem416", pageArray[5].startInterval == NULL);
+	mu_assert("mem417", pageArray[6].state == MISS);
+	mu_assert("mem418", pageArray[6].address == (address + PAGESIZE*2));
+	mu_assert("mem419", pageArray[6].notices[0] == NULL);
+	mu_assert("mem420", pageArray[6].twinPage == NULL);
+	mu_assert("mem421", pageArray[6].startInterval == NULL);
+	mu_assert("mem422", pageArray[7].state == MISS);
+	mu_assert("mem423", pageArray[7].address == (address + PAGESIZE*3));
+	mu_assert("mem424", pageArray[7].notices[0] == NULL);
+	mu_assert("mem425", pageArray[7].twinPage == NULL);
+	mu_assert("mem426", pageArray[7].startInterval == NULL);
+	mu_assert("mem427", pageArray[8].state == RDONLY);
+	mu_assert("mem428", pageArray[8].address == (address+ PAGESIZE*4));
+	mu_assert("mem429", pageArray[8].notices[0] == NULL);
+	mu_assert("mem430", pageArray[8].twinPage == NULL);
+	mu_assert("mem431", pageArray[8].startInterval == NULL);
+	mu_assert("mem432", pagenum == 9);
+	mu_assert("mem433", globalAddress == (void *)(PAGESIZE*9));
 //normal condition slightly smaller than 5 page
-//normal condition slightly bigger than 5 page
-//no enough memory	
-//parameters error	
-	
+	address = mi_alloc(PAGESIZE*5-1);
+	mu_assert("mem434", address != NULL);
+	mu_assert("mem435", pageArray[9].state == MISS);
+	mu_assert("mem436", pageArray[9].address == address);
+	mu_assert("mem437", pageArray[9].notices[0] == NULL);
+	mu_assert("mem438", pageArray[9].twinPage == NULL);
+	mu_assert("mem439", pageArray[9].startInterval == NULL);
+	mu_assert("mem440", pageArray[10].state == MISS);
+	mu_assert("mem441", pageArray[10].address == (address + PAGESIZE));
+	mu_assert("mem442", pageArray[10].notices[0] == NULL);
+	mu_assert("mem443", pageArray[10].twinPage == NULL);
+	mu_assert("mem444", pageArray[10].startInterval == NULL);
+	mu_assert("mem445", pageArray[11].state == MISS);
+	mu_assert("mem446", pageArray[11].address == (address + PAGESIZE*2));
+	mu_assert("mem447", pageArray[11].notices[0] == NULL);
+	mu_assert("mem448", pageArray[11].twinPage == NULL);
+	mu_assert("mem449", pageArray[11].startInterval == NULL);
+	mu_assert("mem450", pageArray[12].state == RDONLY);
+	mu_assert("mem451", pageArray[12].address == (address + PAGESIZE*3));
+	mu_assert("mem452", pageArray[12].notices[0] == NULL);
+	mu_assert("mem453", pageArray[12].twinPage == NULL);
+	mu_assert("mem454", pageArray[12].startInterval == NULL);
+	mu_assert("mem454.1", pageArray[13].state == MISS);
+	mu_assert("mem454.2", pageArray[13].address == (address + PAGESIZE*4));
+	mu_assert("mem454.3", pageArray[13].notices[0] == NULL);
+	mu_assert("mem454.4", pageArray[13].twinPage == NULL);
+	mu_assert("mem454.5", pageArray[13].startInterval == NULL);
 
-	mu_assert("mem375", globalAddress == NULL);
+	mu_assert("mem455", pagenum == 14);
+	mu_assert("mem456", globalAddress == (void *)(PAGESIZE*14));
+//normal condition slightly bigger than 5 page
+	address = mi_alloc(PAGESIZE*5+1);
+	mu_assert("mem456", address != NULL);
+	mu_assert("mem457", pageArray[14].state == MISS);
+	mu_assert("mem458", pageArray[14].address == address);
+	mu_assert("mem459", pageArray[14].notices[0] == NULL);
+	mu_assert("mem460", pageArray[14].twinPage == NULL);
+	mu_assert("mem461", pageArray[14].startInterval == NULL);
+	mu_assert("mem462", pageArray[15].state == MISS);
+	mu_assert("mem463", pageArray[15].address == (address + PAGESIZE));
+	mu_assert("mem464", pageArray[15].notices[0] == NULL);
+	mu_assert("mem465", pageArray[15].twinPage == NULL);
+	mu_assert("mem466", pageArray[15].startInterval == NULL);
+	mu_assert("mem467", pageArray[16].state == RDONLY);
+	mu_assert("mem468", pageArray[16].address == (address + PAGESIZE*2));
+	mu_assert("mem469", pageArray[16].notices[0] == NULL);
+	mu_assert("mem470", pageArray[16].twinPage == NULL);
+	mu_assert("mem471", pageArray[16].startInterval == NULL);
+	mu_assert("mem472", pageArray[17].state == MISS);
+	mu_assert("mem473", pageArray[17].address == (address + PAGESIZE*3));
+	mu_assert("mem474", pageArray[17].notices[0] == NULL);
+	mu_assert("mem475", pageArray[17].twinPage == NULL);
+	mu_assert("mem476", pageArray[17].startInterval == NULL);
+	mu_assert("mem477", pageArray[18].state == MISS);
+	mu_assert("mem478", pageArray[18].address == (address + PAGESIZE*4));
+	mu_assert("mem479", pageArray[18].notices[0] == NULL);
+	mu_assert("mem480", pageArray[18].twinPage == NULL);
+	mu_assert("mem481", pageArray[18].startInterval == NULL);
+	mu_assert("mem481.1", pageArray[19].state == MISS);
+	mu_assert("mem481.2", pageArray[19].address == (address + PAGESIZE*5));
+	mu_assert("mem481.3", pageArray[19].notices[0] == NULL);
+	mu_assert("mem481.4", pageArray[19].twinPage == NULL);
+	mu_assert("mem481.5", pageArray[19].startInterval == NULL);
+	mu_assert("mem482", pagenum == 20);
+	mu_assert("mem483", globalAddress == (void *)(PAGESIZE*20));
+//no enough memory	
+	address = mi_alloc(MAX_PAGE_NUM * PAGESIZE);
+	mu_assert("mem484", address == NULL);
+	mu_assert("mem485", pageArray[20].state == UNMAP);
+	mu_assert("mem486", pageArray[20].address == NULL);
+//parameters error	
+	address = mi_alloc(0);
+	mu_assert("mem487", address == NULL);
+	mu_assert("mem488", pageArray[20].state == UNMAP);
+	mu_assert("mem489", pageArray[20].address == NULL);
+
+	address = mi_alloc(-1);
+	mu_assert("mem490", address == NULL);
+	mu_assert("mem491", pageArray[20].state == UNMAP);
+	mu_assert("mem492", pageArray[20].address == NULL);
+
 	return 0;
 }
 
