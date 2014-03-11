@@ -30,6 +30,7 @@ typedef struct {
 		int state;
 		writenotice_t *notices[MAX_HOST_NUM];
 		void *twinPage;
+		interval_t *startInterval;
 	}page_t;
 typedef struct {
 		int hostid;
@@ -42,7 +43,7 @@ typedef struct {
 		int wnArray[MAX_WN_NUM];
 	}wnPacket_t;
 
-void init_mem();
+void initmem();
 void *mi_alloc(int size);
 int fetchPage(int pageIndex);
 int createTwinPage(int pageIndex);

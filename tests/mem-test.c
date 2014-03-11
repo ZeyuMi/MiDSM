@@ -31,14 +31,29 @@ static char *test_isAfterInterval(){
 	b[1] = 1;
 	mu_assert("mem3", isAfterInterval(a, b) == 1);
 
+	a[0] = 1;
+	b[0] = 2;
 	a[2] = 2;
 	b[2] = 0;
-	mu_assert("mem4", isAfterInterval(a, b) == 1);
+	mu_assert("mem4", isAfterInterval(a, b) == 0);
 
-	a[4] = 2;
+	a[0] = 1;
+	b[0] = 1;
+	a[1] = 4;
+	b[1] = 4;
+	a[2] = 2;
+	b[2] = 2;
+	a[4] = 3;
 	b[4] = 3;
-	mu_assert("mem5", isAfterInterval(a, b) == 1);
+	mu_assert("mem5", isAfterInterval(a, b) == 0);
 
+	a[0] = 1;
+	b[0] = 1;
+	a[2] = 3;
+	b[2] = 2;
+	a[4] = 3;
+	b[4] = 3;
+	mu_assert("mem5.1", isAfterInterval(a, b) == 1);
 
 	mu_assert("mem6", isAfterInterval(NULL, b) == -1);
 	mu_assert("mem7", isAfterInterval(a, NULL) == -1);
@@ -251,6 +266,36 @@ static char *test_incorporateWnPacket(){
 	memset(procArray, 0, MAX_HOST_NUM * sizeof(proc_t));
 	procArray[0].hostid = 0;
 	procArray[0].intervalList = intervalNow;	
+
+	memset(pageArray, 0, MAX_PAGE_NUM * sizeof(page_t));
+	pageArray[0].state = WRITE;
+	pageArray[1].state = RDONLY;
+	pageArray[2].state = MISS;
+	pageArray[3].state = INVALID;
+
+	writenotice_t *wn1 = malloc(sizeof(writenotice_t));
+	wn1->interval = intervalNow;
+	wn1->nextInPage = NULL;
+	wn1->nextInInterval = NULL;
+	wn1->diffAddress = NULL;
+	wn1->pageIndex = 0;
+	pageArray[0].notices[myhostid] = wn1;
+	pageArray[0].address = malloc(sizeof(PAGESIZE));
+	pageArray[0].twinPage = malloc(sizeof(PAGESIZE));
+	memset(pageArray[0].address, 0, sizeof(PAGESIZE));
+	memset(pageArray[0].twinPage, 0, sizeof(PAGESIZE));
+	((char *)pageArray[0].address)[0] = 0;	
+	((char *)pageArray[0].address)[1] = 1;	
+	((char *)pageArray[0].address)[2] = 2;	
+	((char *)pageArray[0].address)[3] = 3;	
+	((char *)pageArray[0].address)[4] = 4;	
+	((char *)pageArray[0].address)[5] = 5;	
+	((char *)pageArray[0].address)[6] = 6;	
+	((char *)pageArray[0].address)[7] = 7;	
+
+	
+	pageArray[1].address = malloc(sizeof(PAGESIZE));
+	memset(pageArray[1].address, 0, sizeof(PAGESIZE));
 	
 	mu_assert("mem67", incorporateWnPacket(NULL) == -1);
 	
@@ -260,16 +305,16 @@ static char *test_incorporateWnPacket(){
 	packet->hostid = 1;
 	(packet->timestamp)[1] = 1;
 	packet->wnCount = 2;
-	(packet->wnArray)[0] = 2;
-	(packet->wnArray)[1] = 1023;
+	(packet->wnArray)[0] = 0;
+	(packet->wnArray)[1] = 1;
 	
 	mu_assert("mem68", incorporateWnPacket(packet) == 0);
 	mu_assert("mem69", (procArray[1].intervalList->timestamp)[1] == 1);
 	mu_assert("mem70", (procArray[1].intervalList->timestamp)[0] == 0);
 	mu_assert("mem71", (procArray[1].intervalList->timestamp)[2] == 0);
 	mu_assert("mem72", (procArray[1].intervalList->timestamp)[3] == 0);
-	mu_assert("mem73", (procArray[1].intervalList)->notices == pageArray[2].notices[1]);
-	mu_assert("mem74", (procArray[1].intervalList)->notices->nextInInterval == pageArray[1023].notices[1]);
+	mu_assert("mem73", (procArray[1].intervalList)->notices == pageArray[0].notices[1]);
+	mu_assert("mem74", (procArray[1].intervalList)->notices->nextInInterval == pageArray[1].notices[1]);
 	mu_assert("mem75", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval == NULL);
 	mu_assert("mem76", (procArray[1].intervalList)->notices->nextInPage == NULL);
 	mu_assert("mem77", (procArray[1].intervalList)->notices->nextInInterval->nextInPage == NULL);
@@ -277,36 +322,53 @@ static char *test_incorporateWnPacket(){
 	mu_assert("mem79", (procArray[1].intervalList)->notices->nextInInterval->interval == procArray[1].intervalList);
 	mu_assert("mem80", (procArray[1].intervalList)->notices->diffAddress == NULL);
 	mu_assert("mem81", (procArray[1].intervalList)->notices->nextInInterval->diffAddress == NULL);
-	mu_assert("mem81.1", (procArray[1].intervalList)->notices->nextInInterval->pageIndex == 1023);
-	mu_assert("mem81.2", (procArray[1].intervalList)->notices->pageIndex == 2);
+	mu_assert("mem81.1", (procArray[1].intervalList)->notices->nextInInterval->pageIndex == 1);
+	mu_assert("mem81.2", (procArray[1].intervalList)->notices->pageIndex == 0);
+	mu_assert("mem81.3", pageArray[0].state == INVALID);
+	mu_assert("mem81.4", pageArray[0].twinPage == NULL);
+	mu_assert("mem81.5", pageArray[0].notices[myhostid]->diffAddress != NULL);
+	char *diffAddress = (char *)pageArray[0].notices[myhostid]->diffAddress;
+	mu_assert("mem81.6", diffAddress[0] == 0);
+	mu_assert("mem81.7", diffAddress[1] == 1);
+	mu_assert("mem81.8", diffAddress[2] == 2);
+	mu_assert("mem81.9", diffAddress[3] == 3);
+	mu_assert("mem81.10", diffAddress[4] == 4);
+	mu_assert("mem81.11", diffAddress[5] == 5);
+	mu_assert("mem81.12", diffAddress[6] == 6);
+	mu_assert("mem81.13", diffAddress[7] == 7);
+
+	mu_assert("mem81.14", pageArray[1].state == INVALID);
+	
 
 
 	memset(packet, 0, sizeof(wnPacket_t));
 	packet->hostid = 1;
 	(packet->timestamp)[1] = 1;
 	packet->wnCount = 2;
-	(packet->wnArray)[0] = 3;
-	(packet->wnArray)[1] = 1024;
+	(packet->wnArray)[0] = 1;
+	(packet->wnArray)[1] = 2;
 	
-	mu_assert("mem81.3", incorporateWnPacket(packet) == 0);
-	mu_assert("mem81.4", (procArray[1].intervalList->timestamp)[1] == 1);
-	mu_assert("mem81.5", (procArray[1].intervalList->timestamp)[0] == 0);
-	mu_assert("mem81.6", (procArray[1].intervalList->timestamp)[2] == 0);
-	mu_assert("mem81.7", (procArray[1].intervalList->timestamp)[3] == 0);
-	mu_assert("mem81.8", procArray[1].intervalList->next == NULL);
+	mu_assert("mem81.15", incorporateWnPacket(packet) == 0);
+	mu_assert("mem81.16", (procArray[1].intervalList->timestamp)[1] == 1);
+	mu_assert("mem81.17", (procArray[1].intervalList->timestamp)[0] == 0);
+	mu_assert("mem81.18", (procArray[1].intervalList->timestamp)[2] == 0);
+	mu_assert("mem81.19", (procArray[1].intervalList->timestamp)[3] == 0);
+	mu_assert("mem81.20", procArray[1].intervalList->next == NULL);
 
-	mu_assert("mem81.9", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval == pageArray[3].notices[1]);
-	mu_assert("mem81.10", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval == pageArray[1024].notices[1]);
-	mu_assert("mem81.11", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->nextInInterval == NULL);
-	mu_assert("mem81.12", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInPage == NULL);
-	mu_assert("mem81.13", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->nextInPage == NULL);
-	mu_assert("mem81.14", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->interval == procArray[1].intervalList);
-	mu_assert("mem81.15", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->interval == procArray[1].intervalList);
-	mu_assert("mem81.16", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->diffAddress == NULL);
-	mu_assert("mem81.17", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->diffAddress == NULL);
-	mu_assert("mem81.18", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->pageIndex == 1024);
-	mu_assert("mem81.19", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->pageIndex == 3);
+	mu_assert("mem81.21", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval == pageArray[1].notices[1]);
+	mu_assert("mem81.22", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval == pageArray[2].notices[1]);
+	mu_assert("mem81.23", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->nextInInterval == NULL);
+	mu_assert("mem81.24", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInPage != NULL);
+	mu_assert("mem81.25", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->nextInPage == NULL);
+	mu_assert("mem81.26", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->interval == procArray[1].intervalList);
+	mu_assert("mem81.27", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->interval == procArray[1].intervalList);
+	mu_assert("mem81.28", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->diffAddress == NULL);
+	mu_assert("mem81.29", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->diffAddress == NULL);
+	mu_assert("mem81.30", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->nextInInterval->pageIndex == 2);
+	mu_assert("mem81.31", (procArray[1].intervalList)->notices->nextInInterval->nextInInterval->pageIndex == 1);
 
+	mu_assert("mem81.32", pageArray[1].state == INVALID);
+	mu_assert("mem81.33", pageArray[2].state == MISS);
 
 	memset(packet, 0, sizeof(wnPacket_t));
 	packet->hostid = 1;
@@ -1280,9 +1342,16 @@ static char *test_handleGrantPageMsg(){
 	extern page_t pageArray[MAX_PAGE_NUM];
 	extern long mapfd;
 	extern int fetchPageWaitFlag;
+	extern interval_t *intervalNow;
 
 	memset(pageArray, 0, sizeof(page_t) * MAX_PAGE_NUM);
 	mapfd = open("/dev/zero", O_RDWR, 0);
+	intervalNow = malloc(sizeof(interval_t));
+	memset(intervalNow, 0, sizeof(interval_t));
+	intervalNow->timestamp[0] = 1;
+	intervalNow->timestamp[1] = 1;
+	intervalNow->timestamp[2] = 2;
+	intervalNow->timestamp[3] = 1;
 
 	pageArray[0].state = MISS;
 	pageArray[0].address = (void *)START_ADDRESS;
@@ -1317,6 +1386,10 @@ static char *test_handleGrantPageMsg(){
 	mu_assert("mem350", ((char *)pageArray[0].address)[3] == 3);
 	mu_assert("mem351", ((char *)pageArray[0].address)[4] == 4);
 	mu_assert("mem352", ((char *)pageArray[0].address)[5] == 0);
+	mu_assert("mem352.1", pageArray[0].startInterval->timestamp[0] == 1);
+	mu_assert("mem352.2", pageArray[0].startInterval->timestamp[1] == 1);
+	mu_assert("mem352.3", pageArray[0].startInterval->timestamp[2] == 2);
+	mu_assert("mem352.4", pageArray[0].startInterval->timestamp[3] == 1);
 	mu_assert("mem353", fetchPageWaitFlag == 0);
 	
 	fetchPageWaitFlag = 1;
@@ -1325,6 +1398,94 @@ static char *test_handleGrantPageMsg(){
 
 	return 0;
 }
+
+
+static char *test_initmem(){
+	extern page_t pageArray[MAX_PAGE_NUM];
+	extern proc_t procArray[MAX_HOST_NUM];
+	extern long mapfd;
+	extern int fetchPageWaitFlag;
+	extern int fetchDiffWaitFlag;
+	extern int fetchWNIWaitFlag;
+	extern interval_t *intervalNow;
+	extern int pagenum;
+	extern void *globalAddress;
+	
+	myhostid = 0;
+	hostnum = 4;
+	
+	initmem();
+	mu_assert("mem354", pageArray[0].address == NULL);
+	mu_assert("mem355", pageArray[0].notices[0] == NULL);
+	mu_assert("mem356", pageArray[0].state == UNMAP);
+	mu_assert("mem357", pageArray[0].twinPage == NULL);
+	mu_assert("mem358", pageArray[0].startInterval == NULL);
+	mu_assert("mem359", pageArray[MAX_PAGE_NUM-1].address == NULL);
+	mu_assert("mem360", pageArray[MAX_PAGE_NUM-1].notices[0] == NULL);
+	mu_assert("mem361", pageArray[MAX_PAGE_NUM-1].state == UNMAP);
+	mu_assert("mem362", pageArray[MAX_PAGE_NUM-1].twinPage == NULL);
+	mu_assert("mem363", pageArray[MAX_PAGE_NUM-1].startInterval == NULL);
+	
+	mu_assert("mem364", procArray[myhostid].hostid == myhostid);
+	mu_assert("mem365", procArray[myhostid].intervalList != NULL);
+	mu_assert("mem366", procArray[myhostid].intervalList == intervalNow);
+	mu_assert("mem367", procArray[1].hostid == 1);
+	mu_assert("mem368", procArray[1].intervalList == NULL);
+	mu_assert("mem369", intervalNow->timestamp[0] == 0);
+	mu_assert("mem370", fetchPageWaitFlag == 0);
+	mu_assert("mem371", fetchDiffWaitFlag == 0);
+	mu_assert("mem372", fetchWNIWaitFlag == 0);
+	mu_assert("mem373", pagenum == 0);
+	mu_assert("mem374", mapfd != 0);
+	mu_assert("mem375", globalAddress == NULL);
+	return 0;
+}
+
+
+static char *test_mi_alloc(){
+	extern page_t pageArray[MAX_PAGE_NUM];
+	extern proc_t procArray[MAX_HOST_NUM];
+	extern int pagenum;
+	extern void *globalAddress;
+	
+	myhostid = 0;
+	hostnum = 4;
+	
+	initmem();
+//normal condition 1 page
+	void *address = mi_alloc(PAGESIZE);
+	mu_assert("mem376", address != NULL);
+	mu_assert("mem376", pageArray[0].state == RDONLY);
+	mu_assert("mem376", pageArray[0].address == address);
+	mu_assert("mem376", pageArray[0].notices[0] == NULL);
+	mu_assert("mem376", pageArray[0].twinPage == NULL);
+	mu_assert("mem376", pageArray[0].startAddress == NULL);
+	mu_assert("mem376", pagenum == 1);
+	mu_assert("mem376", globalAddress == (address+PAGESIZE));
+//normal condition small than 1 page
+	address = mi_alloc(1);
+//stop here
+	mu_assert("mem376", address != NULL);
+	mu_assert("mem376", pageArray[0].state == RDONLY);
+	mu_assert("mem376", pageArray[0].address == address);
+	mu_assert("mem376", pageArray[0].notices[0] == NULL);
+	mu_assert("mem376", pageArray[0].twinPage == NULL);
+	mu_assert("mem376", pageArray[0].startAddress == NULL);
+	mu_assert("mem376", pagenum == 1);
+	mu_assert("mem376", globalAddress == (address+PAGESIZE));
+
+//normal condition slightly bigger than 1 page
+//normal condition 5 page
+//normal condition slightly smaller than 5 page
+//normal condition slightly bigger than 5 page
+//no enough memory	
+//parameters error	
+	
+
+	mu_assert("mem375", globalAddress == NULL);
+	return 0;
+}
+
 
 static char *all_tests(){
 	mu_run_test(test_isAfterInterval);
@@ -1342,6 +1503,8 @@ static char *all_tests(){
 	mu_run_test(test_handleGrantDiffMsg);
 	mu_run_test(test_grantPage);
 	mu_run_test(test_handleGrantPageMsg);
+	mu_run_test(test_initmem);
+	mu_run_test(test_mi_alloc);
 	return 0;
 }
 
