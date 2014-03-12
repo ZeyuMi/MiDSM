@@ -850,3 +850,41 @@ writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *time
 	}
 }
 
+
+/**
+* This procedure will print all local data structures, just for test.
+**/
+void showDataStructures(){
+	int i, j;
+	for(i = 0; i < pagenum; i++){
+		printf("page %d:\n", i);
+		printf("  address = %p\n", pageArray[i].address);
+		printf("  state = %d\n", pageArray[i].state);
+		printf("  notices:\n");
+		for(j = 0; j < hostnum; j++){
+			printf("    %d:\n", j);
+			writenotice_t *wn = pageArray[i].notices[j];
+			while(wn != NULL){
+				printf("    %p:\n", wn->interval);
+				printf("    %p:\n", wn->diffAddress);
+				wn = wn->nextInPage;
+			}
+		}
+		printf("  twinPage = %p\n", pageArray[i].twinPage);
+		printf("  startInterval = %p\n", pageArray[i].startInterval);
+	}
+	for(i = 0; i < hostnum; i++){
+		printf("proc %d:\n", i);
+		printf("  intervals:\n");
+		interval_t *interval = procArray[i].intervalList;
+		while(interval != NULL){
+			printf("    address = %p:\n", interval);
+			printf("    timestamp = [");
+			for(j = 0; j < hostnum; j++){		
+				printf("%d ", interval->timestamp[j]);
+			}
+			printf("]\n");
+			interval = interval->next;
+		}
+	}
+}

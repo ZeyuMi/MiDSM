@@ -66,4 +66,7 @@ void handleGrantWNIMsg(mimsg_t *msg);
 int isAfterInterval(int *timestamp, int *targetTimestamp);
 void addNewInterval();
 writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *timestamp, writenotice_t *notices);
+
+
+void showDataStructures();
 #endif
