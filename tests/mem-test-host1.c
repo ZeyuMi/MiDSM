@@ -11,9 +11,9 @@
 int main(int argc, char **argv){
 	mi_init(argc, argv);
 	
-//	printf("enter barrier\n");
-//	mi_barrier();
-//	printf("exit barrier\n");
+	printf("enter barrier\n");
+	mi_barrier();
+	printf("exit barrier\n");
 //
 //	int i, j;
 //	int *result = (int *)mi_alloc(sizeof(int));
