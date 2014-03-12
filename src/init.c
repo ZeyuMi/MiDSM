@@ -55,6 +55,7 @@ void startNodePrograms(int argc, char **argv){
 		strcat(cmd, " > ");
 		strcat(cmd, wd);
 		strcat(cmd, "out 2>&1 &\"");
+		printf("%s\n", cmd);
 		system(cmd);
 	}
 }
