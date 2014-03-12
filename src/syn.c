@@ -396,11 +396,15 @@ int checkBarrierFlags(){
 	printf("before sending exitBarrier msg\n");
 	mimsg_t *msg;
 	for(i = 1; i < hostnum; i++){
+		printf("before nextFreeMsgInQueue\n");
 		msg = nextFreeMsgInQueue(0);
+		printf("after nextFreeMsgInQueue\n");
 		msg->from = 0;
 		msg->to = i;
 		msg->command = EXIT_BARRIER;
+		printf("before sendMsg\n");
 		sendMsg(msg);
+		printf("after sendMsg\n");
 	}
 	printf("after sending exitBarrier msg\n");
 	for(i = 0; i < hostnum; i++){
