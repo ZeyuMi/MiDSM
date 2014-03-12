@@ -35,5 +35,5 @@ int main(int argc, char **argv){
 	mi_barrier();
 	printf("exit barrier\n");
 	printf("result = %d\n", *result);
-	showDataStructures();
+//	showDataStructures();
 }
