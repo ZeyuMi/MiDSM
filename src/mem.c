@@ -43,6 +43,8 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 		printf("INVALID: fetchDiff\n");
 		fetchDiff(pageIndex);	
 		pageArray[pageIndex].state = RDONLY;
+		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
+			fprintf(stderr, "INVALID mprotect error\n");
 	}else{
 		fprintf(stderr, "Segmentation fault\n");
 		exit(1);
@@ -567,12 +569,13 @@ int incorporateWnPacket(wnPacket_t *packet){
 		if(pageArray[pageIndex].state == RDONLY){
 			printf("page %d : receive writenotice, RDONLY TO INVALID\n", pageIndex);
 			pageArray[pageIndex].state = INVALID;	
+			mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_NONE);
 		}else if(pageArray[pageIndex].state == WRITE){
 			printf("page %d : receive writenotice, WRITE TO INVALID\n", pageIndex);
 			pageArray[pageIndex].state = INVALID;	
 			pageArray[pageIndex].notices[myhostid]->diffAddress = createLocalDiff(pageArray[pageIndex].address, pageArray[pageIndex].twinPage);
 			freeTwinPage(pageIndex);
-			mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ);
+			mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_NONE);
 		}else if(pageArray[pageIndex].state == MISS){
 			;
 		}else if(pageArray[pageIndex].state == INVALID){
