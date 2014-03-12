@@ -1,6 +1,7 @@
 #include "net.h"
 #include "util.h"
 #include "syn.h"
+#include "mem.h"
 
 extern int myhostid;
 extern int hostnum;
@@ -370,6 +371,24 @@ void dispatchMsg(mimsg_t *msg){
 			break;
 		case EXIT_BARRIER:
 			handleExitBarrierMsg(msg);
+			break;
+		case GRANT_WN_I:
+			handleGrantWNIMsg(msg);
+			break;
+		case GRANT_DIFF:
+			handleGrantDiffMsg(msg);
+			break;
+		case GRANT_PAGE:
+			handleGrantPageMsg(msg);
+			break;
+		case FETCH_PAGE:
+			handleFetchPageMsg(msg); 
+			break;
+		case FETCH_WN_I:
+			handleFetchWNIMsg(msg);
+			break;
+		case FETCH_DIFF:
+			handleFetchDiffMsg(msg);
 			break;
 		default: 
 			fprintf(stderr, "command %d has no handler\n", msg->command);
