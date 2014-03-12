@@ -736,6 +736,7 @@ void handleGrantPageMsg(mimsg_t *msg){
 *	msg : msg to be handled  
 **/
 void handleGrantWNIMsg(mimsg_t *msg){
+	printf("entering handleGrantWNIMsg\n");
 	if(msg == NULL){
 		return;
 	}	
@@ -754,6 +755,7 @@ void handleGrantWNIMsg(mimsg_t *msg){
 	procArray[myhostid].intervalList = intervalNow;
 	
 	int packetNum = *((int *)msg->data);
+	printf("packetNum = %d\n",packetNum);
 	wnPacket_t *packet =(wnPacket_t *)(msg->data + sizeof(int));
 	for(i = 0; i < packetNum; i++){
 		packet = packet + i;	
