@@ -51,23 +51,23 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		for(i = 0; i < MAX_HOST_NUM; i++){
 			if(i != myhostid){
 				//printf("receive for %d \n", i);
-			//	printf("before read recv_fds\n");
+				printf("before read recv_fds\n");
 				int fd = datamanager.recv_fds[i];
-			//	printf("after read recv_fds\n");
+				printf("after read recv_fds\n");
 				if(FD_ISSET(fd, &readset)){
-			//		printf("entering fd_isset\n");
+					printf("entering fd_isset\n");
 					mimsg_t *msg = nextFreeMsgInQueue(1);
-			//		printf("nextFreeMsgInQueue successfully\n");
+					printf("nextFreeMsgInQueue successfully\n");
 					struct sockaddr_in addr;	
 					int s = sizeof(addr);
-			//		printf("before recvFrom\n");
+					printf("before recvFrom\n");
 					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0,(struct sockaddr *) &addr, &s);
-			//		if(size == -1){
-			//			printf("err: %s\n", strerror(errno));
-			//		}
+					if(size == -1){
+						printf("err: %s\n", strerror(errno));
+					}
 
 
-			//		printf("after recvFrom size = %d\n", size);
+					printf("after recvFrom size = %d\n", size);
 					
 
 					int seqno = msg->seqno;
@@ -79,7 +79,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 						inet_pton(AF_INET, hosts[i].address, &(dest.sin_addr.s_addr));
 						dest.sin_port = ackPorts[msg->from][myhostid];
 						sendto(ackmanager.snd_fds[i], &(msg->seqno), 4, 0, (struct sockaddr *)&dest, sizeof(dest));
-			//			printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
+						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
 					}
 				}
 			}
