@@ -34,15 +34,11 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 	}else if(pageArray[pageIndex].state == MISS){
 		fetchPage(pageIndex);	
 		pageArray[pageIndex].state = RDONLY;
-		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
-			fprintf(stderr, "MISS mprotect error\n");
 	}else if(pageArray[pageIndex].state == WRITE){
 		;		// no action
 	}else if(pageArray[pageIndex].state == INVALID){
 		fetchDiff(pageIndex);	
 		pageArray[pageIndex].state = RDONLY;
-		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
-			fprintf(stderr, "INVALID mprotect error\n");
 	}else{
 		fprintf(stderr, "Segmentation fault\n");
 		exit(1);
@@ -136,7 +132,7 @@ int fetchPage(int pageIndex){
 		int i;
 		for(i = 0; i < hostnum; i++){
 			if(i == myhostid){
-				continue;	// this cannot happen
+				continue;
 			}
 			if(pageArray[pageIndex].notices[i] != NULL){
 				hasWriteNotice = 1; // this page has received writenotices
@@ -149,7 +145,7 @@ int fetchPage(int pageIndex){
 			interval_t *latestInterval = NULL;
 			for(i = 0; i < hostnum; i++){
 				if(i == myhostid){
-					continue; // this cannot happend
+					continue; // When page state is MISS, notices[myhostid] == NULL
 				}
 				writenotice_t *wn = pageArray[pageIndex].notices[i];  
 				if(wn != NULL){
@@ -435,9 +431,11 @@ int grantDiff(int hostid, int *timestamp, int pageIndex){
 	if(wn != NULL && find == 1){//find writenotice
 		if(wn->diffAddress == NULL){//diff has not been created
 			wn->diffAddress = createLocalDiff(pageArray[pageIndex].address, pageArray[pageIndex].twinPage);
-			freeTwinPage(pageIndex);
-			pageArray[pageIndex].state = RDONLY;
-			mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ);	
+			if(pageArray[pageIndex].state == WRITE){
+				freeTwinPage(pageIndex);
+				pageArray[pageIndex].state = RDONLY;
+				mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ);	
+			}
 		}
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
@@ -559,6 +557,7 @@ int incorporateWnPacket(wnPacket_t *packet){
 			pageArray[pageIndex].state = INVALID;	
 			pageArray[pageIndex].notices[myhostid]->diffAddress = createLocalDiff(pageArray[pageIndex].address, pageArray[pageIndex].twinPage);
 			freeTwinPage(pageIndex);
+			mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ);
 		}else if(pageArray[pageIndex].state == MISS){
 			;
 		}else if(pageArray[pageIndex].state == INVALID){

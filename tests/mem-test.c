@@ -1267,6 +1267,7 @@ static char *test_grantPage(){
 
 	pageArray[0].address = malloc(PAGESIZE);
 	memset(pageArray[0].address, 0, PAGESIZE);
+
 	((char *)pageArray[0].address)[0] = 0;
 	((char *)pageArray[0].address)[1] = 1;
 	((char *)pageArray[0].address)[2] = 2;
