@@ -26,6 +26,7 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 		exit(1);
 	}
 	if(pageArray[pageIndex].state == RDONLY){
+		printf("RDONLY: createWritenotice for page %d\n", pageIndex);
 		createTwinPage(pageIndex);
 		createWriteNotice(pageIndex);
 		pageArray[pageIndex].state = WRITE;
