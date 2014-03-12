@@ -451,6 +451,7 @@ int sendMsg(mimsg_t *msg){
       			unsigned long end = start + mytimeout;
 			printf("before try\n");
 			while((current_time() < end) && (success != 1)){
+				printf("enter trying!!!\n");
 				fd_set set;
 				FD_ZERO(&set);
 				int fd = ackmanager.recv_fds[to]; 
