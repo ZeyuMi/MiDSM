@@ -37,6 +37,10 @@ int main(int argc, char **argv){
 	printf("enter barrier\n");
 	mi_barrier();
 	printf("exit barrier\n");
+	mi_lock(0);
+	*result = *result + 1;
+	mi_unlock(0);
+
 	printf("result = %d\n", *result);
 	showDataStructures();
 }
