@@ -35,6 +35,8 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 	}else if(pageArray[pageIndex].state == MISS){
 		fetchPage(pageIndex);	
 		pageArray[pageIndex].state = RDONLY;
+		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
+			fprintf(stderr, "MISS mprotect error\n");
 	}else if(pageArray[pageIndex].state == WRITE){
 		;		// no action
 	}else if(pageArray[pageIndex].state == INVALID){
