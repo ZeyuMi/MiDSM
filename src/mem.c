@@ -559,8 +559,10 @@ int incorporateWnPacket(wnPacket_t *packet){
 	for(i = 0; i < wnCount; i++){
 		int pageIndex = (packet->wnArray)[i];
 		if(pageArray[pageIndex].state == RDONLY){
+			printf("page %d : receive writenotice, RDONLY TO INVALID\n", pageIndex);
 			pageArray[pageIndex].state = INVALID;	
 		}else if(pageArray[pageIndex].state == WRITE){
+			printf("page %d : receive writenotice, WRITE TO INVALID\n", pageIndex);
 			pageArray[pageIndex].state = INVALID;	
 			pageArray[pageIndex].notices[myhostid]->diffAddress = createLocalDiff(pageArray[pageIndex].address, pageArray[pageIndex].twinPage);
 			freeTwinPage(pageIndex);
