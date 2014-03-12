@@ -35,17 +35,17 @@ void testCommand(mimsg_t *msg){
 }
 
 void sigio_handler(int sigio, siginfo_t *info, void *context){
-	//printf("entering into sigio_handler\n");
-	//printf("before block\n");
+	printf("entering into sigio_handler\n");
+	printf("before block\n");
 	disableSigio();
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
 	polltime.tv_sec = 0;
 	polltime.tv_usec = 0;
-	//printf("before select\n");
+	printf("before select\n");
 	int num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
-	//printf("after select\n");
-	//printf("select num %d \n", num);
+	printf("after select\n");
+	printf("select num %d \n", num);
 	if(num > 0){
 		int i;
 		for(i = 0; i < MAX_HOST_NUM; i++){
@@ -89,7 +89,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		polltime.tv_usec = 0;
 		num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
 	}
-//	printf("after unblock\n");
+	printf("after unblock\n");
 	while(recvQueueSize > 0){
 		mimsg_t *msg = queueTop(1);
 		dispatchMsg(msg);
@@ -358,18 +358,23 @@ void dispatchMsg(mimsg_t *msg){
 	}
 	switch(msg->command){
 		case ACQ_LOCK:
+			printf("receive msg ACQ_LOCK\n");
 			handleAcquireMsg(msg);
 			break;
 		case RLS_LOCK:
+			printf("receive msg RLS_LOCK\n");
 			handleReleaseMsg(msg);
 			break;
 		case GRANT_LOCK:
+			printf("receive msg GRANT_LOCK\n");
 			handleGrantMsg(msg);
 			break;
 		case ENTER_BARRIER:
+			printf("receive msg ENTER_LOCK\n");
 			handleEnterBarrierMsg(msg);
 			break;
 		case EXIT_BARRIER:
+			printf("receive msg EXIT_LOCK\n");
 			handleExitBarrierMsg(msg);
 			break;
 	//	case GRANT_WN_I:
