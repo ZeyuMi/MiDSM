@@ -35,43 +35,43 @@ void testCommand(mimsg_t *msg){
 }
 
 void sigio_handler(int sigio, siginfo_t *info, void *context){
-	printf("entering into sigio_handler\n");
-	printf("before block\n");
+//	printf("entering into sigio_handler\n");
+//	printf("before block\n");
 	disableSigio();
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
 	polltime.tv_sec = 0;
 	polltime.tv_usec = 0;
-	printf("before select\n");
+//	printf("before select\n");
 	int num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
-	printf("after select\n");
-	printf("select num %d \n", num);
+//	printf("after select\n");
+//	printf("select num %d \n", num);
 	if(num > 0){
 		int i;
 		for(i = 0; i < MAX_HOST_NUM; i++){
 			if(i != myhostid){
 				//printf("receive for %d \n", i);
-				printf("before read recv_fds\n");
+//				printf("before read recv_fds\n");
 				int fd = datamanager.recv_fds[i];
-				printf("after read recv_fds\n");
+//				printf("after read recv_fds\n");
 				if(FD_ISSET(fd, &readset)){
-					printf("entering fd_isset\n");
+//					printf("entering fd_isset\n");
 					mimsg_t *msg = nextFreeMsgInQueue(1);
-					printf("nextFreeMsgInQueue successfully\n");
+//					printf("nextFreeMsgInQueue successfully\n");
 					struct sockaddr_in addr;	
 					int s = sizeof(addr);
-					printf("before recvFrom\n");
+//					printf("before recvFrom\n");
 					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0,(struct sockaddr *) &addr, &s);
 					if(size == -1){
 						printf("err: %s\n", strerror(errno));
 					}
 
 
-					printf("after recvFrom size = %d\n", size);
+//					printf("after recvFrom size = %d\n", size);
 					
 
 					int seqno = msg->seqno;
-					printf("seqno = %d\n", seqno);
+//					printf("seqno = %d\n", seqno);
 					if((size > 0) && (seqno == datamanager.recv_seqs[i])){
 						msgEnqueue(1);	
 						datamanager.recv_seqs[i] = seqno+1;
@@ -80,7 +80,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 						inet_pton(AF_INET, hosts[i].address, &(dest.sin_addr.s_addr));
 						dest.sin_port = ackPorts[msg->from][myhostid];
 						sendto(ackmanager.snd_fds[i], &(msg->seqno), 4, 0, (struct sockaddr *)&dest, sizeof(dest));
-						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
+//						printf("send ack %d to ip = %s, port num = %d\n", msg->seqno, hosts[i].address, ackPorts[msg->from][msg->to]);
 					}
 				}
 			}
@@ -90,7 +90,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		polltime.tv_usec = 0;
 		num = select(datamanager.recv_maxfd, &readset, NULL, NULL, &polltime);
 	}
-	printf("after unblock\n");
+//	printf("after unblock\n");
 	while(recvQueueSize > 0){
 		mimsg_t *msg = queueTop(1);
 		dispatchMsg(msg);
@@ -359,7 +359,7 @@ void dispatchMsg(mimsg_t *msg){
 	}
 	switch(msg->command){
 		case TEST_COMMAND:
-			printf("receive msg TEST_COMMAND\n");
+//			printf("receive msg TEST_COMMAND\n");
 			testCommand(msg);
 			break;
 		case ACQ_LOCK:
