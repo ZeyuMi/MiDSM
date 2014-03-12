@@ -645,6 +645,7 @@ int createWriteNotice(int pageIndex){
 void handleFetchPageMsg(mimsg_t *msg){
 	int from = msg->from;
 	int pageIndex = *((int *)msg->data);
+	printf("fetchPage msg pageIndex = %d\n", pageIndex);
 	grantPage(from, pageIndex);
 }
 
@@ -658,6 +659,13 @@ void handleFetchDiffMsg(mimsg_t *msg){
 	int from = msg->from;
 	int pageIndex = *((int *)msg->data);
 	int *timestamp = (int *)(msg->data + sizeof(int));
+	printf("fetchDiff msg pageIndex = %d\n", pageIndex);
+	printf("fetchDiff msg timestamp = [");
+	int i;
+	for(i = 0; i < hostnum; i++){
+		printf("%d ", timestamp[i]);
+	}
+	printf("]\n");
 	grantDiff(from, timestamp, pageIndex);
 }
 
@@ -670,6 +678,12 @@ void handleFetchDiffMsg(mimsg_t *msg){
 void handleFetchWNIMsg(mimsg_t *msg){
 	int from = msg->from;
 	int *timestamp = (int *)msg->data;
+	printf("fetchWNI msg timestamp = [");
+	int i;
+	for(i = 0; i < hostnum; i++){
+		printf("%d ", timestamp[i]);
+	}
+	printf("]\n");
 	grantWNI(from, timestamp);
 }
 
@@ -688,7 +702,17 @@ void handleGrantDiffMsg(mimsg_t *msg){
 	int pageIndex = *((int *)(msg->data + sizeof(int) * MAX_HOST_NUM));
 	void *diffAddress = msg->data + sizeof(int) * (MAX_HOST_NUM + 1);
 	
+	printf("grantDiff msg pageIndex = %d\n", pageIndex);
+	printf("grantDiff msg timestamp = [");
 	int i;
+	for(i = 0; i < hostnum; i++){
+		printf("%d ", timestamp[i]);
+	}
+	printf("]\n");
+
+
+
+
 	int find = 1;
 	writenotice_t *wn = pageArray[pageIndex].notices[hostid];
 	while(wn != NULL){
@@ -729,6 +753,11 @@ void handleGrantPageMsg(mimsg_t *msg){
 	}
 	int pageIndex = *((int *)msg->data);
 	void *pageAddress = msg->data + sizeof(int);
+	printf("grantPage msg pageIndex = %d\n", pageIndex);
+
+
+
+
 	mmap(pageArray[pageIndex].address, PAGESIZE, PROT_READ | PROT_WRITE , MAP_PRIVATE | MAP_FIXED, mapfd, 0);
 	bcopy(pageAddress, pageArray[pageIndex].address, PAGESIZE);
 	pageArray[pageIndex].startInterval = intervalNow;
@@ -749,7 +778,18 @@ void handleGrantWNIMsg(mimsg_t *msg){
 	intervalNow = malloc(sizeof(interval_t));
 	memset(intervalNow, 0, sizeof(interval_t));
 
+	printf("grantWNI msg timestamp = [");
 	int i;
+	for(i = 0; i < hostnum; i++){
+		printf("%d ", msg->timestamp[i]);
+	}
+	printf("]\n");
+
+
+
+
+
+
 	for(i = 0; i < MAX_HOST_NUM; i++){
 		intervalNow->timestamp[i] = msg->timestamp[i];
 	}
