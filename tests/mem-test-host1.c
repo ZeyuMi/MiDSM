@@ -15,8 +15,7 @@ int main(int argc, char **argv){
 	mi_barrier();
 	printf("exit barrier\n");
 
-	int i, j, result;
-	result = 0;
+	int i, j;
 	int *result = (int *)mi_alloc(sizeof(int));
 	mi_lock(0);
 	*result = 0;
@@ -35,5 +34,5 @@ int main(int argc, char **argv){
 	printf("enter barrier\n");
 	mi_barrier();
 	printf("exit barrier\n");
-	printf("result = %d\n",result);
+	printf("result = %d\n", *result);
 }
