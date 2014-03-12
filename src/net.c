@@ -71,6 +71,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 					
 
 					int seqno = msg->seqno;
+					printf("seqno = %d\n", seqno);
 					if((size > 0) && (seqno == datamanager.recv_seqs[i])){
 						msgEnqueue(1);	
 						datamanager.recv_seqs[i] = seqno+1;
@@ -463,6 +464,9 @@ int sendMsg(mimsg_t *msg){
 				polltime.tv_sec = 0;
 				polltime.tv_usec = 0;
 				int num = select(fd+1, &set, NULL, NULL, &polltime);
+				if(num == -1){
+					printf("err: %s\n", strerror(errno));
+				}
 				if(num > 0){
 					int seqno = 0;	
 					printf("before select\n");
