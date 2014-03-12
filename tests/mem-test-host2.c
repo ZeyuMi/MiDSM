@@ -9,6 +9,7 @@
 
 
 int main(int argc, char **argv){
+	printf("hello,world from host2\n");
 	mi_init(argc, argv);
 	
 	printf("enter barrier\n");
