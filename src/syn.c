@@ -224,9 +224,7 @@ void handleReleaseMsg(mimsg_t *msg){
 void handleEnterBarrierMsg(mimsg_t *msg){
 	int hostid = msg->from;
 	barrierFlags[hostid] = 1;
-	printf("before checkBarrierFlags\n");
 	int result = checkBarrierFlags();
-	printf("after checkBarrierFlags\n");
 	if(result == 0){
 		waitFlag = 0;
 	}
@@ -393,20 +391,14 @@ int checkBarrierFlags(){
 			return -1;
 		}
 	}
-	printf("before sending exitBarrier msg\n");
 	mimsg_t *msg;
 	for(i = 1; i < hostnum; i++){
-		printf("before nextFreeMsgInQueue\n");
 		msg = nextFreeMsgInQueue(0);
-		printf("after nextFreeMsgInQueue\n");
 		msg->from = 0;
 		msg->to = i;
 		msg->command = EXIT_BARRIER;
-		printf("before sendMsg\n");
 		sendMsg(msg);
-		printf("after sendMsg\n");
 	}
-	printf("after sending exitBarrier msg\n");
 	for(i = 0; i < hostnum; i++){
 		barrierFlags[i] = 0;
 	}
