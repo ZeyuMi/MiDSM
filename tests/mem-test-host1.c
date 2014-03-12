@@ -24,11 +24,9 @@ int main(int argc, char **argv){
 	mi_barrier();
 	printf("exit barrier\n");
 
-	for(i = 0; i < 10; i++){
-		mi_lock(0);
-		*result = *result + 1;
-		mi_unlock(0);
-	}
+	mi_lock(0);
+	*result = *result + 1;
+	mi_unlock(0);
 	
 	
 	printf("enter barrier\n");
