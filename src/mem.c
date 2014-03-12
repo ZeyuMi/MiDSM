@@ -512,6 +512,7 @@ void *createLocalDiff(void *pageAddress, void *twinAddress){
 *	-1 --- parameters error
 **/
 int incorporateWnPacket(wnPacket_t *packet){
+	printf("entering incorporateWnPacket\n");
 	if(packet == NULL){
 		return -1;
 	}
@@ -556,8 +557,10 @@ int incorporateWnPacket(wnPacket_t *packet){
 		}
 		procArray[hostid].intervalList = interval;
 	}
+	printf("wnCount = %d\n", wnCount);
 	for(i = 0; i < wnCount; i++){
 		int pageIndex = (packet->wnArray)[i];
+		printf("add writenotice for page %d\n", pageIndex);
 		if(pageArray[pageIndex].state == RDONLY){
 			printf("page %d : receive writenotice, RDONLY TO INVALID\n", pageIndex);
 			pageArray[pageIndex].state = INVALID;	
