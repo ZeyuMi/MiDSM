@@ -69,9 +69,9 @@ void initLocalEnv(){
 	int id = getuid();
 	struct passwd *user = getpwuid(id);
 	myhostid = findHostIdByName(user->pw_name);
+	initnet();
 	initsyn();
 	initmem();
-	initnet();
 } 
 
 

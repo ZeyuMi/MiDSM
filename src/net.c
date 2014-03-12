@@ -31,7 +31,7 @@ void enableSigio(){
 
 
 void testCommand(mimsg_t *msg){
-	//printf("seqno %d : msg from %d to %d with command %d received!\n", msg->seqno, msg->from, msg->to, msg->command);
+	printf("seqno %d : msg from %d to %d with command %d received!\n", msg->seqno, msg->from, msg->to, msg->command);
 }
 
 void sigio_handler(int sigio, siginfo_t *info, void *context){
@@ -357,6 +357,10 @@ void dispatchMsg(mimsg_t *msg){
 		return;
 	}
 	switch(msg->command){
+		case TEST_COMMAND:
+			printf("receive msg TEST_COMMAND\n");
+			testCommand(msg);
+			break;
 		case ACQ_LOCK:
 			printf("receive msg ACQ_LOCK\n");
 			handleAcquireMsg(msg);
