@@ -21,14 +21,15 @@ int main(int argc, char **argv){
 	mi_barrier();
 	printf("exit barrier\n");
 
-	printf("before lock\n");
-	mi_lock(0);
-	printf("after lock\n");
-	*result = *result + 1;
-	printf("before unlock\n");
-	mi_unlock(0);
-	printf("after unlock\n");
-	
+	for(i = 0; i < 2; i++){	
+		printf("before lock\n");
+		mi_lock(0);
+		printf("after lock\n");
+		*result = *result + 1;
+		printf("before unlock\n");
+		mi_unlock(0);
+		printf("after unlock\n");
+	}
 	
 	printf("enter barrier\n");
 	mi_barrier();
