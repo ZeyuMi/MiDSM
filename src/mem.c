@@ -802,6 +802,7 @@ int isAfterInterval(int *timestamp, int *targetTimestamp){
 * This procedure will be invoked when releasing a lock. It will make a new interval and point it using 'intervalNow'
 **/
 void addNewInterval(){
+	disableSigio();
 	intervalNow = malloc(sizeof(interval_t));
 	memset(intervalNow, 0, sizeof(interval_t));
 	int i;
@@ -817,6 +818,7 @@ void addNewInterval(){
 	}
 	procArray[myhostid].intervalList = intervalNow;
 	intervalNow->isBarrier = 0;
+	enableSigio();
 }
 
 

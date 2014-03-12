@@ -69,6 +69,7 @@ int mi_lock(int lockno){
 			}
 			result = 0;
 		}else if(result >= -1){
+			enableSigio();
 			if(result != -1 && result != myhostid){
 				fetchWritenoticeAndInterval(result);
 			}else{
@@ -76,7 +77,6 @@ int mi_lock(int lockno){
 			}
 			myLocks[lockno] = 1;
 			result = 0;
-			enableSigio();
 		}
 	}else{
 		mimsg_t *msg = nextFreeMsgInQueue(0);
