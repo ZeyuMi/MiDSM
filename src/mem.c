@@ -90,26 +90,32 @@ void initmem(){
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_SIGINFO;
 	sigaction(SIGSEGV, &act, NULL);
+	printf("initialize segv_handler\n");
 /*******************initialize pageArray********************/
 	memset(pageArray, 0, sizeof(page_t) * MAX_PAGE_NUM);
+	printf("initialize pageArray\n");
 /*******************initialize procArray********************/
 	memset(procArray, 0, sizeof(proc_t) * MAX_HOST_NUM);
 	int i;
 	for(i = 0; i < hostnum; i++){
 		procArray[i].hostid = i;
 	}
+	printf("initialize procArray\n");
 /*******************prepare mapped file*********************/	
 	mapfd = open("/dev/zero", O_RDWR, 0);
+	printf("initialize mapfd\n");
 /*******************initialize other global variables*******/	
 	globalAddress = NULL;
 	pagenum = 0;
 	fetchPageWaitFlag = 0;
 	fetchDiffWaitFlag = 0;
 	fetchWNIWaitFlag = 0;
+	printf("initialize other global variables\n");
 /*******************initialize intervalNow******************/
 	intervalNow = malloc(sizeof(interval_t));
 	memset(intervalNow, 0, sizeof(interval_t));
 	procArray[myhostid].intervalList = intervalNow;
+	printf("initialize intervalNow\n");
 }
 
 
