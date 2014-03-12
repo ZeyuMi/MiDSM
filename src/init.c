@@ -71,7 +71,7 @@ void initLocalEnv(){
 	myhostid = findHostIdByName(user->pw_name);
 	initnet();
 	initsyn();
-	initmem();
+//	initmem();
 } 
 
 
