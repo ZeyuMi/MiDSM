@@ -862,11 +862,11 @@ void showDataStructures(){
 		printf("  state = %d\n", pageArray[i].state);
 		printf("  notices:\n");
 		for(j = 0; j < hostnum; j++){
-			printf("    %d:\n", j);
+			printf("    %d\n", j);
 			writenotice_t *wn = pageArray[i].notices[j];
 			while(wn != NULL){
-				printf("    %p:\n", wn->interval);
-				printf("    %p:\n", wn->diffAddress);
+				printf("      %p\n", wn->interval);
+				printf("      %p\n", wn->diffAddress);
 				wn = wn->nextInPage;
 			}
 		}
