@@ -58,7 +58,7 @@ int mi_lock(int lockno){
 	int result;
 	if((lockno % hostnum) == myhostid){
 		int result = graspLock(lockno, myhostid);
-		if(result == -2){
+		if(result == -3){
 			waitFlag = 1;
 			enableSigio();
 			while(waitFlag)
@@ -71,6 +71,8 @@ int mi_lock(int lockno){
 		}else if(result >= -1){
 			if(result != -1 && result != myhostid){
 				fetchWritenoticeAndInterval(result);
+			}else{
+				addNewInterval();//no interval will be received, so this node should increment interval by itself
 			}
 			myLocks[lockno] = 1;
 			result = 0;
@@ -92,6 +94,8 @@ int mi_lock(int lockno){
 		if(lasthostid != -1 && lasthostid != myhostid){
 			fetchWritenoticeAndInterval(lasthostid);
 			lasthostid = -1;
+		}else{
+			addNewInterval();//no interval will be received, so this node should increment interval by itself
 		}
 		result = 0;
 	}
@@ -141,6 +145,7 @@ int mi_unlock(int lockno){
 		result = 0;
 	}
 	enableSigio();
+	addNewInterval();//increment new interval
 	return result;
 }
 
