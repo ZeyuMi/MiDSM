@@ -375,29 +375,35 @@ void dispatchMsg(mimsg_t *msg){
 			handleGrantMsg(msg);
 			break;
 		case ENTER_BARRIER:
-			printf("receive msg ENTER_LOCK\n");
+			printf("receive msg ENTER_BARRIER\n");
 			handleEnterBarrierMsg(msg);
 			break;
 		case EXIT_BARRIER:
-			printf("receive msg EXIT_LOCK\n");
+			printf("receive msg EXIT_BARRIER\n");
 			handleExitBarrierMsg(msg);
 			break;
 		case GRANT_WN_I:
+			printf("receive msg GRANT_WN_I\n");
 			handleGrantWNIMsg(msg);
 			break;
 		case GRANT_DIFF:
+			printf("receive msg GRANT_DIFF\n");
 			handleGrantDiffMsg(msg);
 			break;
 		case GRANT_PAGE:
+			printf("receive msg GRANT_PAGE\n");
 			handleGrantPageMsg(msg);
 			break;
 		case FETCH_PAGE:
+			printf("receive msg FETCH_PAGE\n");
 			handleFetchPageMsg(msg); 
 			break;
 		case FETCH_WN_I:
+			printf("receive msg FETCH_WN_I\n");
 			handleFetchWNIMsg(msg);
 			break;
 		case FETCH_DIFF:
+			printf("receive msg FETCH_DIFF\n");
 			handleFetchDiffMsg(msg);
 			break;
 		default: 
