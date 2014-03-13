@@ -331,7 +331,7 @@ void grantLock(int lockno, int hostid){
 	msg->from = myhostid;
 	msg->to = hostid;
 	msg->command = GRANT_LOCK;
-	apendMsgData(msg, &lockno, sizeof(int));
+	apendMsgData(msg, (char *)&lockno, sizeof(int));
 	printf("grantLock, lasthostid=%d\n",locks[lockno].lasthostid);
 	apendMsgData(msg, (char *)&(locks[lockno].lasthostid), sizeof(int));
 	sendMsg(msg);
