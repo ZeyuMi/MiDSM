@@ -95,18 +95,50 @@ receive msg FETCH_WN_I
 fetchWNI msg timestamp = [0 0 ]
 receive msg FETCH_PAGE
 fetchPage msg pageIndex = 0
-receive msg RLS_LOCK
 after unlock
 before lock
+receive msg RLS_LOCK
 receive msg GRANT_WN_I
 entering handleGrantWNIMsg
-grantWNI msg timestamp = [3 2 ]
-packetNum = 0
+grantWNI msg timestamp = [4 2 ]
+packetNum = 1
+entering incorporateWnPacket
+wnCount = 1
+add writenotice for page 0
+page 0 : receive writenotice, WRITE TO INVALID
 after lock
+INVALID: fetchDiff
+receive msg ACQ_LOCK
+err: Interrupted system call
+receive msg GRANT_DIFF
+grantDiff msg pageIndex = 0
+grantDiff msg timestamp = [4 1 ]
+applying diff
+RDONLY: createWritenotice for page 0
 before unlock
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [4 2 ]
+receive msg FETCH_DIFF
+fetchDiff msg pageIndex = 0
+fetchDiff msg timestamp = [5 2 ]
 after unlock
 before lock
+receive msg RLS_LOCK
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [6 4 ]
+packetNum = 1
+entering incorporateWnPacket
+wnCount = 1
+add writenotice for page 0
+page 0 : receive writenotice, RDONLY TO INVALID
 after lock
+INVALID: fetchDiff
+receive msg GRANT_DIFF
+grantDiff msg pageIndex = 0
+grantDiff msg timestamp = [6 3 ]
+applying diff
+RDONLY: createWritenotice for page 0
 before unlock
 after unlock
 before lock
@@ -138,79 +170,113 @@ after lock
 before unlock
 after unlock
 enter barrier
+receive msg ACQ_LOCK
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [6 4 ]
+receive msg FETCH_DIFF
+fetchDiff msg pageIndex = 0
+fetchDiff msg timestamp = [7 4 ]
 receive msg RLS_LOCK
+receive msg ACQ_LOCK
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [22 6 ]
 receive msg RLS_LOCK
+receive msg ACQ_LOCK
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [22 6 ]
 receive msg RLS_LOCK
+receive msg ACQ_LOCK
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [22 6 ]
 receive msg RLS_LOCK
+receive msg ACQ_LOCK
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [22 6 ]
 receive msg RLS_LOCK
+receive msg ACQ_LOCK
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [22 6 ]
 receive msg RLS_LOCK
+receive msg ACQ_LOCK
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [22 6 ]
 receive msg RLS_LOCK
-receive msg RLS_LOCK
+receive msg ACQ_LOCK
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [22 6 ]
 receive msg RLS_LOCK
 receive msg ENTER_BARRIER
 exit barrier
-result = 11
+result = 12
 page 0:
   address = 0x60000000
-  state = 2
+  state = 1
   notices:
     0
-      0x9102ab8
-      (nil)
+      0xa25dbb8
+      0xa263d70
+      0xa25ec78
+      0xa261d60
+      0xa25dab8
+      0xa25ed48
     1
-  twinPage = 0x9102b20
+      0xa25dc20
+      0xa260d58
+      0xa25ece0
+      0xa25fd50
+  twinPage = (nil)
   startInterval = (nil)
 proc 0:
   intervals:
-    address = 0x9104430:
-    timestamp = [23 2 ]
-    address = 0x91043c8:
-    timestamp = [22 2 ]
-    address = 0x9104360:
-    timestamp = [21 2 ]
-    address = 0x91042f8:
-    timestamp = [20 2 ]
-    address = 0x9104290:
-    timestamp = [19 2 ]
-    address = 0x9104228:
-    timestamp = [18 2 ]
-    address = 0x91041c0:
-    timestamp = [17 2 ]
-    address = 0x9104158:
-    timestamp = [16 2 ]
-    address = 0x91040f0:
-    timestamp = [15 2 ]
-    address = 0x9104088:
-    timestamp = [14 2 ]
-    address = 0x9104020:
-    timestamp = [13 2 ]
-    address = 0x9103fb8:
-    timestamp = [12 2 ]
-    address = 0x9103f50:
-    timestamp = [11 2 ]
-    address = 0x9103ee8:
-    timestamp = [10 2 ]
-    address = 0x9103e80:
-    timestamp = [9 2 ]
-    address = 0x9103e18:
-    timestamp = [8 2 ]
-    address = 0x9103db0:
-    timestamp = [7 2 ]
-    address = 0x9103d48:
+    address = 0xa25e268:
+    timestamp = [22 4 ]
+    address = 0xa25e200:
+    timestamp = [21 4 ]
+    address = 0xa25e198:
+    timestamp = [20 4 ]
+    address = 0xa25e130:
+    timestamp = [19 4 ]
+    address = 0xa25e0c8:
+    timestamp = [18 4 ]
+    address = 0xa25e060:
+    timestamp = [17 4 ]
+    address = 0xa25dff8:
+    timestamp = [16 4 ]
+    address = 0xa25df90:
+    timestamp = [15 4 ]
+    address = 0xa25df28:
+    timestamp = [14 4 ]
+    address = 0xa25dec0:
+    timestamp = [13 4 ]
+    address = 0xa25de58:
+    timestamp = [12 4 ]
+    address = 0xa25ddf0:
+    timestamp = [11 4 ]
+    address = 0xa25dd88:
+    timestamp = [10 4 ]
+    address = 0xa25dd20:
+    timestamp = [9 4 ]
+    address = 0xa25dcb8:
+    timestamp = [8 4 ]
+    address = 0xa25dbb8:
+    timestamp = [7 4 ]
+    address = 0xa25db50:
     timestamp = [6 2 ]
-    address = 0x9103ce0:
+    address = 0xa25ec78:
     timestamp = [5 2 ]
-    address = 0x9103c78:
-    timestamp = [4 2 ]
-    address = 0x9103c10:
+    address = 0xa25ec10:
     timestamp = [4 0 ]
-    address = 0x9103ba8:
+    address = 0xa25eba8:
     timestamp = [3 0 ]
-    address = 0x9103b40:
+    address = 0xa25eb40:
     timestamp = [2 0 ]
-    address = 0x9102ab8:
+    address = 0xa25dab8:
     timestamp = [1 0 ]
-    address = 0x9102a50:
+    address = 0xa25da50:
     timestamp = [0 0 ]
 proc 1:
   intervals:
+    address = 0xa25dc20:
+    timestamp = [6 3 ]
+    address = 0xa25ece0:
+    timestamp = [4 1 ]
