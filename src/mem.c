@@ -18,7 +18,6 @@ long mapfd;
 void *globalAddress;
 
 void segv_handler(int signo, siginfo_t *info, void *context){
-	disableSigio();
 	void *faultaddress = info->si_addr;
 	void *addr = ((long)faultaddress % PAGESIZE == 0) ? faultaddress : (void *)((long)faultaddress / PAGESIZE * PAGESIZE);
 	int pageIndex = ((long)addr - START_ADDRESS) / PAGESIZE;
@@ -50,7 +49,6 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 		fprintf(stderr, "Segmentation fault\n");
 		exit(1);
 	}	
-	enableSigio();
 }
 
 
