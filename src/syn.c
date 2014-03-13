@@ -267,7 +267,7 @@ void handleGrantMsg(mimsg_t *msg){
 	}
 	printf("handle grant lock\n");
 	int lockno = *((int *)msg->data);
-	if((lockno >= 0) && (lockno <= LOCK_NUM)){
+	if((lockno >= 0) && (lockno < LOCK_NUM)){
 		lasthostid = *((int *)(msg->data+sizeof(int)));
 		printf("handleGrant lasthostid=%d\n",lasthostid);
 		myLocks[lockno] = 1;
@@ -333,7 +333,10 @@ void grantLock(int lockno, int hostid){
 	msg->command = GRANT_LOCK;
 	apendMsgData(msg, (char *)&lockno, sizeof(int));
 	printf("grantLock, lasthostid=%d\n",locks[lockno].lasthostid);
+	printf("grantLock, msg->size=%d\n",msg->size);
 	apendMsgData(msg, (char *)&(locks[lockno].lasthostid), sizeof(int));
+	printf("grantLock, msg->lockno=%d\n",*(int *)(msg->data));
+	printf("grantLock, msg->lasthostid=%d\n",*(int *)(msg->data+sizeof(int)));
 	sendMsg(msg);
 }
 
