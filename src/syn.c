@@ -150,6 +150,7 @@ int mi_unlock(int lockno){
 		apendMsgData(msg, buffer, sizeof(int));
 		sendMsg(msg);
 		result = 0;
+		myLocks[lockno] = 0;
 	}
 	enableSigio();
 	printf("exit mi_unlock\n");
