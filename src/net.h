@@ -15,7 +15,7 @@
 #include <string.h>
 #include "init.h"
 
-#define MSG_HEAD_SIZE ((MAX_HOST_NUM+3)*4)
+#define MSG_HEAD_SIZE ((MAX_HOST_NUM+5)*4)
 #define MAX_MSG_SIZE 40960
 #define MAX_QUEUE_SIZE MAX_HOST_NUM
 #define BASEPORT 12345
