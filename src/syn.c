@@ -95,6 +95,7 @@ int mi_lock(int lockno){
 			;
 //		printf("unlock wakes up\n");
 		if(lasthostid != -1 && lasthostid != myhostid){
+			printf("fetch writenotice and interval\n");
 			fetchWritenoticeAndInterval(lasthostid);
 			lasthostid = -1;
 		}else{
