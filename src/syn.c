@@ -91,6 +91,7 @@ int mi_lock(int lockno){
 		enableSigio();
 		while(waitFlag)
 			;
+		printf("unlock wakes up\n");
 		if(lasthostid != -1 && lasthostid != myhostid){
 			fetchWritenoticeAndInterval(lasthostid);
 			lasthostid = -1;
@@ -256,6 +257,7 @@ void handleGrantMsg(mimsg_t *msg){
 	if(msg == NULL){
 		return;
 	}
+	printf("handle grant lock\n");
 	int lockno = strtol(msg->data, NULL, 10);
 	if((lockno >= 0) && (lockno <= LOCK_NUM)){
 		lasthostid = *((int *)(msg->data+sizeof(int)));
