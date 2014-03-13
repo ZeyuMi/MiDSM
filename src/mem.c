@@ -734,7 +734,10 @@ void handleGrantDiffMsg(mimsg_t *msg){
 
 			bcopy(diffAddress, wn->diffAddress, PAGESIZE);
 		}
+		printf("applying diff\n");
+		mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ | PROT_WRITE);
 		applyDiff(pageArray[pageIndex].address, diffAddress);
+		mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_NONE);
 	}
 	fetchDiffWaitFlag = 0;
 	return;
