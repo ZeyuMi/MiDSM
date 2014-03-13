@@ -140,6 +140,7 @@ int mi_unlock(int lockno){
 			result = 0;
 		}
 	}else{
+		printf("sending RLS_LOCK msg\n");
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
 		msg->to = lockno % hostnum;
