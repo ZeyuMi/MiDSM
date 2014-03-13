@@ -48,6 +48,7 @@ void initsyn(){
 *	-2 --- user has already owned this lock
 **/
 int mi_lock(int lockno){
+	printf("enter mi_lock\n");
 	if((lockno < 0) || (lockno >= LOCK_NUM)){
 		return -1;
 	}
@@ -100,6 +101,7 @@ int mi_lock(int lockno){
 		}
 		result = 0;
 	}
+	printf("exit mi_lock\n");
 	return result;
 }
 
@@ -114,6 +116,7 @@ int mi_lock(int lockno){
 *	-2 --- user does not own this lock 
 **/
 int mi_unlock(int lockno){
+	printf("enter mi_unlock\n");
 	if((lockno < 0) || (lockno >= LOCK_NUM)){
 		return -1;
 	}
@@ -147,6 +150,7 @@ int mi_unlock(int lockno){
 		result = 0;
 	}
 	enableSigio();
+	printf("exit mi_unlock\n");
 	return result;
 }
 
