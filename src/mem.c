@@ -179,9 +179,8 @@ int fetchPage(int pageIndex){
 		msg->to = hostid;
 		msg->command = FETCH_PAGE;
 		apendMsgData(msg, (char *)&pageIndex, sizeof(int));
-
-		sendMsg(msg);
 		fetchPageWaitFlag = 1;
+		sendMsg(msg);
 		while(fetchPageWaitFlag)
 			;
 		return 0;
@@ -266,8 +265,8 @@ int fetchDiff(int pageIndex){
 				msg->command = FETCH_DIFF;
 				apendMsgData(msg, (char *)&pageIndex, sizeof(int));	
 				apendMsgData(msg, (char *)wn->interval->timestamp, sizeof(int) * MAX_HOST_NUM);
-				sendMsg(msg);
 				fetchDiffWaitFlag = 1;
+				sendMsg(msg);
 				while(fetchDiffWaitFlag)
 					;
 			}
@@ -298,8 +297,8 @@ int fetchWritenoticeAndInterval(int hostid){
 	msg->to = hostid;
 	msg->command = FETCH_WN_I;
 	apendMsgData(msg, (char *)intervalNow->timestamp, sizeof(int) * MAX_HOST_NUM);
-	sendMsg(msg);
 	fetchWNIWaitFlag = 1;
+	sendMsg(msg);
 	while(fetchDiffWaitFlag)
 		;
 	return 0;
