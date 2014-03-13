@@ -86,15 +86,16 @@ receive msg EXIT_BARRIER
 exit barrier
 before lock
 receive msg GRANT_LOCK
-after lock
+handle grant lock
+fetch writenotice and interval
 receive msg GRANT_WN_I
 entering handleGrantWNIMsg
-grantWNI msg timestamp = [3 0 ]
+grantWNI msg timestamp = [4 0 ]
 packetNum = 1
 entering incorporateWnPacket
 wnCount = 1
 add writenotice for page 0
-err: Interrupted system call
+after lock
 receive msg GRANT_PAGE
 grantPage msg pageIndex = 0
 RDONLY: createWritenotice for page 0
@@ -103,84 +104,205 @@ receive msg FETCH_WN_I
 fetchWNI msg timestamp = [4 0 ]
 after unlock
 before lock
+receive msg FETCH_DIFF
+fetchDiff msg pageIndex = 0
+fetchDiff msg timestamp = [4 1 ]
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [6 2 ]
+packetNum = 1
+entering incorporateWnPacket
+wnCount = 1
+add writenotice for page 0
+page 0 : receive writenotice, RDONLY TO INVALID
+after lock
+INVALID: fetchDiff
+receive msg GRANT_DIFF
+grantDiff msg pageIndex = 0
+grantDiff msg timestamp = [5 2 ]
+applying diff
+RDONLY: createWritenotice for page 0
+before unlock
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [6 2 ]
+receive msg FETCH_DIFF
+fetchDiff msg pageIndex = 0
+fetchDiff msg timestamp = [6 3 ]
+after unlock
+before lock
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [22 4 ]
+packetNum = 1
+entering incorporateWnPacket
+wnCount = 1
+add writenotice for page 0
+page 0 : receive writenotice, RDONLY TO INVALID
+after lock
+INVALID: fetchDiff
+receive msg GRANT_DIFF
+grantDiff msg pageIndex = 0
+grantDiff msg timestamp = [7 4 ]
+applying diff
+RDONLY: createWritenotice for page 0
+before unlock
+after unlock
+before lock
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [22 4 ]
+packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [22 4 ]
+packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [22 4 ]
+packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [22 4 ]
+packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [22 4 ]
+packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [22 4 ]
+packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
-after lock
-before unlock
-after unlock
-before lock
-after lock
-before unlock
-after unlock
-before lock
+receive msg GRANT_LOCK
+handle grant lock
+fetch writenotice and interval
+receive msg GRANT_WN_I
+entering handleGrantWNIMsg
+grantWNI msg timestamp = [22 4 ]
+packetNum = 0
 after lock
 before unlock
 after unlock
 enter barrier
 receive msg EXIT_BARRIER
 exit barrier
-result = 11
+result = 20
 page 0:
   address = 0x60000000
   state = 2
   notices:
     0
-      0x9d38b20
+      0x9d11d70
+      0x9d14c38
+      0x9d11c08
+      0x9d13c30
+      0x9d11b20
       (nil)
     1
-      0x9d38ab8
+      0x9d11d08
       (nil)
-  twinPage = 0x9d38ba0
-  startInterval = 0x9d38ab8
+      0x9d11ba0
+      0x9d15c40
+      0x9d11ab8
+      0x9d12c28
+  twinPage = 0x9d16c48
+  startInterval = 0x9d11ab8
 proc 0:
   intervals:
-    address = 0x9d38b20:
+    address = 0x9d11d70:
+    timestamp = [7 4 ]
+    address = 0x9d11c08:
+    timestamp = [5 2 ]
+    address = 0x9d11b20:
     timestamp = [1 0 ]
 proc 1:
   intervals:
-    address = 0x9d39f68:
-    timestamp = [3 11 ]
-    address = 0x9d39f00:
-    timestamp = [3 10 ]
-    address = 0x9d39e98:
-    timestamp = [3 9 ]
-    address = 0x9d39e30:
-    timestamp = [3 8 ]
-    address = 0x9d39dc8:
-    timestamp = [3 7 ]
-    address = 0x9d39d60:
-    timestamp = [3 6 ]
-    address = 0x9d39cf8:
-    timestamp = [3 5 ]
-    address = 0x9d39c90:
-    timestamp = [3 4 ]
-    address = 0x9d39c28:
-    timestamp = [3 3 ]
-    address = 0x9d39bc0:
-    timestamp = [3 2 ]
-    address = 0x9d38ab8:
-    timestamp = [3 1 ]
-    address = 0x9d38a50:
+    address = 0x9d123b8:
+    timestamp = [22 6 ]
+    address = 0x9d12350:
+    timestamp = [22 5 ]
+    address = 0x9d122e8:
+    timestamp = [22 6 ]
+    address = 0x9d12280:
+    timestamp = [22 5 ]
+    address = 0x9d12218:
+    timestamp = [22 6 ]
+    address = 0x9d121b0:
+    timestamp = [22 5 ]
+    address = 0x9d12148:
+    timestamp = [22 6 ]
+    address = 0x9d120e0:
+    timestamp = [22 5 ]
+    address = 0x9d12078:
+    timestamp = [22 6 ]
+    address = 0x9d12010:
+    timestamp = [22 5 ]
+    address = 0x9d11fa8:
+    timestamp = [22 6 ]
+    address = 0x9d11f40:
+    timestamp = [22 5 ]
+    address = 0x9d11ed8:
+    timestamp = [22 6 ]
+    address = 0x9d11e70:
+    timestamp = [22 5 ]
+    address = 0x9d11e08:
+    timestamp = [22 6 ]
+    address = 0x9d11d08:
+    timestamp = [22 5 ]
+    address = 0x9d11ca0:
+    timestamp = [6 4 ]
+    address = 0x9d11ba0:
+    timestamp = [6 3 ]
+    address = 0x9d12bc0:
+    timestamp = [4 2 ]
+    address = 0x9d11ab8:
+    timestamp = [4 1 ]
+    address = 0x9d11a50:
     timestamp = [0 0 ]
