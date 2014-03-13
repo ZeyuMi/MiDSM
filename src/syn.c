@@ -333,6 +333,7 @@ void grantLock(int lockno, int hostid){
 	char buffer[20];
 	sprintf(buffer, "%d", lockno);
 	apendMsgData(msg, buffer, sizeof(int));
+	printf("grantLock, lasthostid=%d\n",locks[lockno].lasthostid);
 	apendMsgData(msg, (char *)&(locks[lockno].lasthostid), sizeof(int));
 	sendMsg(msg);
 }
@@ -377,6 +378,7 @@ int freeLock(int lockno, int hostid){
 			locks[lockno].waitingList[(locks[lockno].waitingListCount)-1] = -1;
 			(locks[lockno].waitingListCount)--;
 			locks[lockno].owner = waitinghostid;
+			printf("freeLock lasthostid = %d\n", hostid);
 			locks[lockno].lasthostid = hostid;
 			return waitinghostid;
 		}
