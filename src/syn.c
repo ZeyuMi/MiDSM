@@ -53,6 +53,7 @@ int mi_lock(int lockno){
 		return -1;
 	}
 	if(myLocks[lockno] == 1){
+		printf("I have got this lock\n");
 		return -2;
 	}
 	disableSigio();
