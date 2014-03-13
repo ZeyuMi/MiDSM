@@ -270,6 +270,10 @@ void handleGrantMsg(mimsg_t *msg){
 	if((lockno >= 0) && (lockno < LOCK_NUM)){
 		lasthostid = *((int *)(msg->data+sizeof(int)));
 		printf("handleGrant lasthostid=%d\n",lasthostid);
+		int i;
+		for(i = 0; i < msg->size; i++){
+			printf("handleGrant msg->data[%d]=%d\n",i, msg->data[i]);
+		}
 		myLocks[lockno] = 1;
 		waitFlag = 0;
 	}
