@@ -95,11 +95,9 @@ receive msg FETCH_WN_I
 fetchWNI msg timestamp = [0 0 ]
 receive msg FETCH_PAGE
 fetchPage msg pageIndex = 0
+receive msg RLS_LOCK
 after unlock
 before lock
-receive msg RLS_LOCK
-receive msg RLS_LOCK
-err: Interrupted system call
 receive msg GRANT_WN_I
 entering handleGrantWNIMsg
 grantWNI msg timestamp = [3 2 ]
@@ -140,6 +138,15 @@ after lock
 before unlock
 after unlock
 enter barrier
+receive msg RLS_LOCK
+receive msg RLS_LOCK
+receive msg RLS_LOCK
+receive msg RLS_LOCK
+receive msg RLS_LOCK
+receive msg RLS_LOCK
+receive msg RLS_LOCK
+receive msg RLS_LOCK
+receive msg RLS_LOCK
 receive msg ENTER_BARRIER
 exit barrier
 result = 11
@@ -148,62 +155,62 @@ page 0:
   state = 2
   notices:
     0
-      0x9a62ab8
+      0x9102ab8
       (nil)
     1
-  twinPage = 0x9a62b20
+  twinPage = 0x9102b20
   startInterval = (nil)
 proc 0:
   intervals:
-    address = 0x9a64430:
+    address = 0x9104430:
     timestamp = [23 2 ]
-    address = 0x9a643c8:
+    address = 0x91043c8:
     timestamp = [22 2 ]
-    address = 0x9a64360:
+    address = 0x9104360:
     timestamp = [21 2 ]
-    address = 0x9a642f8:
+    address = 0x91042f8:
     timestamp = [20 2 ]
-    address = 0x9a64290:
+    address = 0x9104290:
     timestamp = [19 2 ]
-    address = 0x9a64228:
+    address = 0x9104228:
     timestamp = [18 2 ]
-    address = 0x9a641c0:
+    address = 0x91041c0:
     timestamp = [17 2 ]
-    address = 0x9a64158:
+    address = 0x9104158:
     timestamp = [16 2 ]
-    address = 0x9a640f0:
+    address = 0x91040f0:
     timestamp = [15 2 ]
-    address = 0x9a64088:
+    address = 0x9104088:
     timestamp = [14 2 ]
-    address = 0x9a64020:
+    address = 0x9104020:
     timestamp = [13 2 ]
-    address = 0x9a63fb8:
+    address = 0x9103fb8:
     timestamp = [12 2 ]
-    address = 0x9a63f50:
+    address = 0x9103f50:
     timestamp = [11 2 ]
-    address = 0x9a63ee8:
+    address = 0x9103ee8:
     timestamp = [10 2 ]
-    address = 0x9a63e80:
+    address = 0x9103e80:
     timestamp = [9 2 ]
-    address = 0x9a63e18:
+    address = 0x9103e18:
     timestamp = [8 2 ]
-    address = 0x9a63db0:
+    address = 0x9103db0:
     timestamp = [7 2 ]
-    address = 0x9a63d48:
+    address = 0x9103d48:
     timestamp = [6 2 ]
-    address = 0x9a63ce0:
+    address = 0x9103ce0:
     timestamp = [5 2 ]
-    address = 0x9a63c78:
+    address = 0x9103c78:
     timestamp = [4 2 ]
-    address = 0x9a63c10:
+    address = 0x9103c10:
     timestamp = [4 0 ]
-    address = 0x9a63ba8:
+    address = 0x9103ba8:
     timestamp = [3 0 ]
-    address = 0x9a63b40:
+    address = 0x9103b40:
     timestamp = [2 0 ]
-    address = 0x9a62ab8:
+    address = 0x9102ab8:
     timestamp = [1 0 ]
-    address = 0x9a62a50:
+    address = 0x9102a50:
     timestamp = [0 0 ]
 proc 1:
   intervals:

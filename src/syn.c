@@ -119,6 +119,7 @@ int mi_unlock(int lockno){
 	if(myLocks[lockno] == 0){
 		return -2;
 	}
+	addNewInterval();//increment new interval
 	disableSigio();
 	int result;
 	if((lockno % hostnum) == myhostid){
@@ -145,7 +146,6 @@ int mi_unlock(int lockno){
 		result = 0;
 	}
 	enableSigio();
-	addNewInterval();//increment new interval
 	return result;
 }
 
