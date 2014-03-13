@@ -100,10 +100,10 @@ receive msg GRANT_PAGE
 grantPage msg pageIndex = 0
 RDONLY: createWritenotice for page 0
 before unlock
-receive msg FETCH_WN_I
-fetchWNI msg timestamp = [4 0 ]
 after unlock
 before lock
+receive msg FETCH_WN_I
+fetchWNI msg timestamp = [4 0 ]
 receive msg FETCH_DIFF
 fetchDiff msg pageIndex = 0
 fetchDiff msg timestamp = [4 1 ]
@@ -156,77 +156,42 @@ after unlock
 before lock
 receive msg GRANT_LOCK
 handle grant lock
-fetch writenotice and interval
-receive msg GRANT_WN_I
-entering handleGrantWNIMsg
-grantWNI msg timestamp = [22 4 ]
-packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
 receive msg GRANT_LOCK
 handle grant lock
-fetch writenotice and interval
-receive msg GRANT_WN_I
-entering handleGrantWNIMsg
-grantWNI msg timestamp = [22 4 ]
-packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
 receive msg GRANT_LOCK
 handle grant lock
-fetch writenotice and interval
-receive msg GRANT_WN_I
-entering handleGrantWNIMsg
-grantWNI msg timestamp = [22 4 ]
-packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
 receive msg GRANT_LOCK
 handle grant lock
-fetch writenotice and interval
-receive msg GRANT_WN_I
-entering handleGrantWNIMsg
-grantWNI msg timestamp = [22 4 ]
-packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
 receive msg GRANT_LOCK
 handle grant lock
-fetch writenotice and interval
-receive msg GRANT_WN_I
-entering handleGrantWNIMsg
-grantWNI msg timestamp = [22 4 ]
-packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
 receive msg GRANT_LOCK
 handle grant lock
-fetch writenotice and interval
-receive msg GRANT_WN_I
-entering handleGrantWNIMsg
-grantWNI msg timestamp = [22 4 ]
-packetNum = 0
 after lock
 before unlock
 after unlock
 before lock
 receive msg GRANT_LOCK
 handle grant lock
-fetch writenotice and interval
-receive msg GRANT_WN_I
-entering handleGrantWNIMsg
-grantWNI msg timestamp = [22 4 ]
-packetNum = 0
 after lock
 before unlock
 after unlock
@@ -239,70 +204,70 @@ page 0:
   state = 2
   notices:
     0
-      0x9d11d70
-      0x9d14c38
-      0x9d11c08
-      0x9d13c30
-      0x9d11b20
+      0xa248d70
+      0xa24bc38
+      0xa248c08
+      0xa24ac30
+      0xa248b20
       (nil)
     1
-      0x9d11d08
+      0xa248d08
       (nil)
-      0x9d11ba0
-      0x9d15c40
-      0x9d11ab8
-      0x9d12c28
-  twinPage = 0x9d16c48
-  startInterval = 0x9d11ab8
+      0xa248ba0
+      0xa24cc40
+      0xa248ab8
+      0xa249c28
+  twinPage = 0xa24dc48
+  startInterval = 0xa248ab8
 proc 0:
   intervals:
-    address = 0x9d11d70:
+    address = 0xa248d70:
     timestamp = [7 4 ]
-    address = 0x9d11c08:
+    address = 0xa248c08:
     timestamp = [5 2 ]
-    address = 0x9d11b20:
+    address = 0xa248b20:
     timestamp = [1 0 ]
 proc 1:
   intervals:
-    address = 0x9d123b8:
+    address = 0xa2493b8:
+    timestamp = [22 20 ]
+    address = 0xa249350:
+    timestamp = [22 19 ]
+    address = 0xa2492e8:
+    timestamp = [22 18 ]
+    address = 0xa249280:
+    timestamp = [22 17 ]
+    address = 0xa249218:
+    timestamp = [22 16 ]
+    address = 0xa2491b0:
+    timestamp = [22 15 ]
+    address = 0xa249148:
+    timestamp = [22 14 ]
+    address = 0xa2490e0:
+    timestamp = [22 13 ]
+    address = 0xa249078:
+    timestamp = [22 12 ]
+    address = 0xa249010:
+    timestamp = [22 11 ]
+    address = 0xa248fa8:
+    timestamp = [22 10 ]
+    address = 0xa248f40:
+    timestamp = [22 9 ]
+    address = 0xa248ed8:
+    timestamp = [22 8 ]
+    address = 0xa248e70:
+    timestamp = [22 7 ]
+    address = 0xa248e08:
     timestamp = [22 6 ]
-    address = 0x9d12350:
+    address = 0xa248d08:
     timestamp = [22 5 ]
-    address = 0x9d122e8:
-    timestamp = [22 6 ]
-    address = 0x9d12280:
-    timestamp = [22 5 ]
-    address = 0x9d12218:
-    timestamp = [22 6 ]
-    address = 0x9d121b0:
-    timestamp = [22 5 ]
-    address = 0x9d12148:
-    timestamp = [22 6 ]
-    address = 0x9d120e0:
-    timestamp = [22 5 ]
-    address = 0x9d12078:
-    timestamp = [22 6 ]
-    address = 0x9d12010:
-    timestamp = [22 5 ]
-    address = 0x9d11fa8:
-    timestamp = [22 6 ]
-    address = 0x9d11f40:
-    timestamp = [22 5 ]
-    address = 0x9d11ed8:
-    timestamp = [22 6 ]
-    address = 0x9d11e70:
-    timestamp = [22 5 ]
-    address = 0x9d11e08:
-    timestamp = [22 6 ]
-    address = 0x9d11d08:
-    timestamp = [22 5 ]
-    address = 0x9d11ca0:
+    address = 0xa248ca0:
     timestamp = [6 4 ]
-    address = 0x9d11ba0:
+    address = 0xa248ba0:
     timestamp = [6 3 ]
-    address = 0x9d12bc0:
+    address = 0xa249bc0:
     timestamp = [4 2 ]
-    address = 0x9d11ab8:
+    address = 0xa248ab8:
     timestamp = [4 1 ]
-    address = 0x9d11a50:
+    address = 0xa248a50:
     timestamp = [0 0 ]
