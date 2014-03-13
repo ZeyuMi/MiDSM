@@ -299,7 +299,7 @@ int fetchWritenoticeAndInterval(int hostid){
 	apendMsgData(msg, (char *)intervalNow->timestamp, sizeof(int) * MAX_HOST_NUM);
 	fetchWNIWaitFlag = 1;
 	sendMsg(msg);
-	while(fetchDiffWaitFlag)
+	while(fetchWNIWaitFlag)
 		;
 	return 0;
 }
@@ -806,6 +806,7 @@ void handleGrantWNIMsg(mimsg_t *msg){
 		packet = packet + i;	
 		incorporateWnPacket(packet);
 	}
+	fetchWNIWaitFlag = 0;
 }
 
 
