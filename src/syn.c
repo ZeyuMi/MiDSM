@@ -48,7 +48,7 @@ void initsyn(){
 *	-2 --- user has already owned this lock
 **/
 int mi_lock(int lockno){
-	printf("enter mi_lock\n");
+//	printf("enter mi_lock\n");
 	if((lockno < 0) || (lockno >= LOCK_NUM)){
 		return -1;
 	}
@@ -93,7 +93,7 @@ int mi_lock(int lockno){
 		enableSigio();
 		while(waitFlag)
 			;
-		printf("unlock wakes up\n");
+//		printf("unlock wakes up\n");
 		if(lasthostid != -1 && lasthostid != myhostid){
 			fetchWritenoticeAndInterval(lasthostid);
 			lasthostid = -1;
@@ -102,7 +102,7 @@ int mi_lock(int lockno){
 		}
 		result = 0;
 	}
-	printf("exit mi_lock\n");
+//	printf("exit mi_lock\n");
 	return result;
 }
 
@@ -117,7 +117,7 @@ int mi_lock(int lockno){
 *	-2 --- user does not own this lock 
 **/
 int mi_unlock(int lockno){
-	printf("enter mi_unlock\n");
+//	printf("enter mi_unlock\n");
 	if((lockno < 0) || (lockno >= LOCK_NUM)){
 		return -1;
 	}
@@ -140,7 +140,7 @@ int mi_unlock(int lockno){
 			result = 0;
 		}
 	}else{
-		printf("sending RLS_LOCK msg\n");
+//		printf("sending RLS_LOCK msg\n");
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
 		msg->to = lockno % hostnum;
@@ -153,7 +153,7 @@ int mi_unlock(int lockno){
 		myLocks[lockno] = 0;
 	}
 	enableSigio();
-	printf("exit mi_unlock\n");
+//	printf("exit mi_unlock\n");
 	return result;
 }
 
