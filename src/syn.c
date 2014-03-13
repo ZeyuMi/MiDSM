@@ -210,7 +210,7 @@ void handleAcquireMsg(mimsg_t *msg){
 void handleReleaseMsg(mimsg_t *msg){
 	int lockno = strtol(msg->data, NULL, 10);
 	int hostid = msg->from;
-	if((lockno >= 0) && (lockno <= LOCK_NUM)){
+	if((lockno >= 0) && (lockno < LOCK_NUM)){
 		int result = freeLock(lockno, hostid);
 		if(result >= 0){
 			if(result == myhostid){
@@ -368,6 +368,7 @@ int freeLock(int lockno, int hostid){
 		if(locks[lockno].waitingListCount == 0){
 			locks[lockno].state = FREE;
 			locks[lockno].owner = -1;
+			printf("freelock1 set lasthostid=%d\n",hostid);
 			locks[lockno].lasthostid = hostid;
 			return -5;
 		}else{
@@ -379,7 +380,7 @@ int freeLock(int lockno, int hostid){
 			locks[lockno].waitingList[(locks[lockno].waitingListCount)-1] = -1;
 			(locks[lockno].waitingListCount)--;
 			locks[lockno].owner = waitinghostid;
-			printf("freeLock lasthostid = %d\n", hostid);
+			printf("freeLock2 set lasthostid = %d\n", hostid);
 			locks[lockno].lasthostid = hostid;
 			return waitinghostid;
 		}
