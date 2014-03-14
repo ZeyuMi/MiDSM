@@ -66,6 +66,11 @@ void handleGrantWNIMsg(mimsg_t *msg);
 int isAfterInterval(int *timestamp, int *targetTimestamp);
 void addNewInterval();
 writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *timestamp, writenotice_t *notices);
+//following methods are for barrier
+void sendEnterBarrierInfo();
+void returnAllBarrierInfo();
+void handleGrantEnterBarrierMsg(mimsg_t *msg);
+void handleGrantExitBarrierMsg(mimsg_t *msg);
 
 
 void showDataStructures();

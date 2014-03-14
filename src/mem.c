@@ -16,6 +16,8 @@ int fetchPageWaitFlag, fetchDiffWaitFlag, fetchWNIWaitFlag;
 int pagenum;
 long mapfd;
 void *globalAddress;
+int barrierTimestamps[MAX_HOST_NUM][MAX_HOST_NUM];
+
 
 void segv_handler(int signo, siginfo_t *info, void *context){
 	void *faultaddress = info->si_addr;
@@ -120,7 +122,14 @@ void initmem(){
 /*******************initialize intervalNow******************/
 	intervalNow = malloc(sizeof(interval_t));
 	memset(intervalNow, 0, sizeof(interval_t));
+	intervalNow->isBarrier = 1;
 	procArray[myhostid].intervalList = intervalNow;
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		int j;
+		for(j = 0; j < MAX_HOST_NUM; j++){
+			barrierTimestamps[i][j] = -1;
+		}
+	}
 	//printf("initialize intervalNow\n");
 }
 
@@ -907,6 +916,39 @@ writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *time
 	}else{
 		return NULL;
 	}
+}
+
+
+/**
+* This procedure will be invoked by mi_barrier procedure when one client enter a barrier and it will send all relevant writenotices and intervals to host 0.
+**/
+void sendEnterBarrierInfo(){
+
+}
+
+
+/**
+* 3
+**/
+void returnAllBarrierInfo(){
+
+}
+
+
+/**
+* 2
+**/
+void handleGrantEnterBarrierMsg(mimsg_t *msg){
+
+
+}
+
+
+/**
+* 4
+**/
+void handleGrantExitBarrierMsg(mimsg_t *msg){
+
 }
 
 

@@ -270,6 +270,10 @@ mimsg_t *nextFreeMsgInQueue(int type){
 			sndQueue[sndHead].command = -1;
 			sndQueue[sndHead].size = 0;
 			sndQueue[sndHead].seqno = -1;
+			int i;
+			for(i = 0; i < MAX_HOST_NUM; i++){
+				sndQueue[sndHead].timestamp[i] = -1;
+			}
 			return &(sndQueue[sndHead]);
 		}
 	}else{
@@ -282,6 +286,10 @@ mimsg_t *nextFreeMsgInQueue(int type){
 			recvQueue[recvHead].command = -1;
 			recvQueue[recvHead].size = 0;
 			recvQueue[recvHead].seqno = -1;
+			int i;
+			for(i = 0; i < MAX_HOST_NUM; i++){
+				recvQueue[recvHead].timestamp[i] = -1;
+			}
 			return &(recvQueue[recvHead]);
 		}
 	}	

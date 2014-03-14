@@ -109,6 +109,10 @@ static char *test_nextFreeMsgInQueue(){
 	msg = queueTop(0);
 	mu_assert("net49", msg != NULL);
 	mu_assert("net50", msg->size == 12345);
+	mu_assert("net50.1", msg->timestamp[0] == -1);
+	mu_assert("net50.2", msg->timestamp[1] == -1);
+	mu_assert("net50.3", msg->timestamp[2] == -1);
+	mu_assert("net50.4", msg->timestamp[MAX_HOST_NUM-1] == -1);
 
 	msg = nextFreeMsgInQueue(1);
 	
@@ -124,6 +128,12 @@ static char *test_nextFreeMsgInQueue(){
 	msg = queueTop(1);
 	mu_assert("net59", msg != NULL);
 	mu_assert("net60", msg->size == 12345);
+	mu_assert("net60.1", msg->timestamp[0] == -1);
+	mu_assert("net60.2", msg->timestamp[1] == -1);
+	mu_assert("net60.3", msg->timestamp[2] == -1);
+	mu_assert("net60.4", msg->timestamp[MAX_HOST_NUM-1] == -1);
+
+
 	int i = 0;
 	for(i = 0; i < 20; i++){
 		msgEnqueue(0);
