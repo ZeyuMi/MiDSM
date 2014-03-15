@@ -477,6 +477,7 @@ static char *test_grantWNI(){
 	extern int sendMsgCalled; 
 	extern int nextFreeMsgInQueueCalled;
 	extern mimsg_t msg;
+	extern int alreadyCalled;
 
 	myhostid = 0;
 	hostnum = 4;
@@ -1622,6 +1623,9 @@ static char *test_sendEnterBarrierInfo(){
 	extern int sendMsgCalled; 
 	extern int nextFreeMsgInQueueCalled;
 	extern mimsg_t msg;
+	extern mimsg_t msg2;
+	extern int alreadyCalled;
+	extern interval_t *intervalNow;
 
 	myhostid = 1;
 	hostnum = 4;
@@ -1638,7 +1642,7 @@ static char *test_sendEnterBarrierInfo(){
 	mu_assert("mem493", parametertype == 1);
 	mu_assert("mem494", sendMsgCalled == 0);
 	mu_assert("mem495", nextFreeMsgInQueueCalled == 0);
-//send one msg without wnPacket
+//send one msg 1 wnPacket
 	parametertype = 1;
 	sendMsgCalled = 0;
 	nextFreeMsgInQueueCalled = 0;
@@ -1650,6 +1654,9 @@ static char *test_sendEnterBarrierInfo(){
 	
 	myhostid = 1;
 	sendEnterBarrierInfo();
+	mu_assert("mem495.1", parametertype == 0);
+	mu_assert("mem495.2", sendMsgCalled == 1);
+	mu_assert("mem495.3", nextFreeMsgInQueueCalled == 1);
 	mu_assert("mem496", msg.from == 1);
 	mu_assert("mem497", msg.to == 0);
 	mu_assert("mem498", msg.command == GRANT_ENTER_BARRIER_INFO);
@@ -1657,17 +1664,26 @@ static char *test_sendEnterBarrierInfo(){
 	mu_assert("mem500", msg.timestamp[1] == 0);
 	mu_assert("mem501", msg.timestamp[2] == 0);
 	mu_assert("mem502", msg.timestamp[3] == 0);
-	mu_assert("mem503", msg.size == 4);
+	mu_assert("mem503", msg.size == (sizeof(int)+sizeof(wnPacket_t)));
 	int packetCount = *((int *)msg.data);
-	mu_assert("mem504", packetCount == 0);
-//send one wnPacket
+	mu_assert("mem504", packetCount == 1);
+	wnPacket_t *packet = (wnPacket_t *)(msg.data+sizeof(int));
+	mu_assert("mem505", packet->hostid == 1);
+	mu_assert("mem506", packet->timestamp[0] == 0);
+	mu_assert("mem507", packet->timestamp[1] == 0);
+	mu_assert("mem508", packet->timestamp[2] == 0);
+	mu_assert("mem509", packet->timestamp[3] == 0);
+	mu_assert("mem510", packet->wnCount == 0);
+	
+//send 2 wnPacket
 
 	initmem();
 	interval_t *interval1 = malloc(sizeof(interval_t));
 	memset(interval1, 0, sizeof(interval_t));
 	interval1->timestamp[1] = 1;
 	procArray[1].hostid = 1;	
-	procArray[1].intervalList = interval1;	
+	procArray[1].intervalList = interval1;
+	intervalNow = interval1;
 	writenotice_t *lastWnInInterval = NULL;
 	int wnCount = 3;
 	for(i = 0; i < wnCount; i++){
@@ -1695,31 +1711,250 @@ static char *test_sendEnterBarrierInfo(){
 	
 	myhostid = 1;
 	sendEnterBarrierInfo();	
-	mu_assert("mem505", msg.from == 1);
-	mu_assert("mem506", msg.to == 0);
-	mu_assert("mem507", msg.command == GRANT_ENTER_BARRIER_INFO);
-	mu_assert("mem508", msg.timestamp[0] == 0);
-	mu_assert("mem509", msg.timestamp[1] == 1);
-	mu_assert("mem510", msg.timestamp[2] == 0);
-	mu_assert("mem511", msg.timestamp[3] == 0);
-	mu_assert("mem512", msg.size == (sizeof(int)+sizeof(wnPacket_t)));
+	mu_assert("mem510.1", parametertype == 0);
+	mu_assert("mem510.2", sendMsgCalled == 1);
+	mu_assert("mem510.3", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem511", msg.from == 1);
+	mu_assert("mem512", msg.to == 0);
+	mu_assert("mem513", msg.command == GRANT_ENTER_BARRIER_INFO);
+	mu_assert("mem514", msg.timestamp[0] == 0);
+	mu_assert("mem515", msg.timestamp[1] == 1);
+	mu_assert("mem516", msg.timestamp[2] == 0);
+	mu_assert("mem517", msg.timestamp[3] == 0);
+	mu_assert("mem518", msg.size == (sizeof(int)+sizeof(wnPacket_t)*2));
 	packetCount = *((int *)msg.data);
-	mu_assert("mem513", packetCount == 1);
-	wnPacket_t *packet = (wnPacket_t *)(msg.data+sizeof(int));
-	mu_assert("mem514", packet->hostid == 1);
-	mu_assert("mem515", packet->timestamp[0] == 0);
-	mu_assert("mem516", packet->timestamp[1] == 1);
-	mu_assert("mem517", packet->timestamp[2] == 0);
-	mu_assert("mem518", packet->timestamp[3] == 0);
-	mu_assert("mem519", packet->wnCount == 1);
-	mu_assert("mem520", packet->wnArray[0] == 0);
-	mu_assert("mem521", packet->wnArray[1] == 1);
-	mu_assert("mem522", packet->wnArray[2] == 2);
+	mu_assert("mem519", packetCount == 2);
+	packet = (wnPacket_t *)(msg.data+sizeof(int));
+	mu_assert("mem520", packet->hostid == 1);
+	mu_assert("mem521", packet->timestamp[0] == 0);
+	mu_assert("mem522", packet->timestamp[1] == 0);
+	mu_assert("mem523", packet->timestamp[2] == 0);
+	mu_assert("mem524", packet->timestamp[3] == 0);
+	mu_assert("mem525", packet->wnCount == 0);
+	packet = packet+1;
+	mu_assert("mem520", packet->hostid == 1);
+	mu_assert("mem521", packet->timestamp[0] == 0);
+	mu_assert("mem522", packet->timestamp[1] == 1);
+	mu_assert("mem523", packet->timestamp[2] == 0);
+	mu_assert("mem524", packet->timestamp[3] == 0);
+	mu_assert("mem525", packet->wnCount == 3);
+	mu_assert("mem526", packet->wnArray[0] == 0);
+	mu_assert("mem527", packet->wnArray[1] == 1);
+	mu_assert("mem528", packet->wnArray[2] == 2);
 
 //send two wnPacket for one interval
-//send two msgs
-//send three msgs
+	interval_t *interval2 = malloc(sizeof(interval_t));
+	memset(interval2, 0, sizeof(interval_t));
+	interval2->timestamp[1] = 2;
+	interval2->isBarrier = 1;
+	interval2->next = procArray[1].intervalList;
+	procArray[1].intervalList = interval2;	
+	
+	interval_t *interval3 = malloc(sizeof(interval_t));
+	memset(interval3, 0, sizeof(interval_t));
+	interval3->timestamp[1] = 3;
+	interval3->next = procArray[1].intervalList;
+	procArray[1].intervalList = interval3;	
+	intervalNow = interval3;
+	lastWnInInterval = NULL;
+	wnCount = MAX_WN_NUM+1;
+	for(i = 0; i < wnCount; i++){
+		writenotice_t *wn = malloc(sizeof(writenotice_t));
+		wn->interval = interval3;
+		wn->nextInPage = pageArray[i].notices[0];
+		wn->pageIndex = i;
+		pageArray[i].notices[0] = wn;
+		wn->nextInInterval = NULL;
+		if(lastWnInInterval == NULL){
+			interval3->notices = lastWnInInterval = wn;
+		}else{
+			lastWnInInterval->nextInInterval = wn;
+			lastWnInInterval = wn;
+		}
+	}
 
+	parametertype = 1;
+	sendMsgCalled = 0;
+	nextFreeMsgInQueueCalled = 0;
+	memset(&msg, 0, sizeof(mimsg_t));
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		msg.timestamp[i] = -1;
+	}
+	
+	myhostid = 1;
+	sendEnterBarrierInfo();	
+	mu_assert("mem528.1", parametertype == 0);
+	mu_assert("mem528.2", sendMsgCalled == 1);
+	mu_assert("mem528.3", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem529", msg.from == 1);
+	mu_assert("mem530", msg.to == 0);
+	mu_assert("mem531", msg.command == GRANT_ENTER_BARRIER_INFO);
+	mu_assert("mem532", msg.timestamp[0] == 0);
+	mu_assert("mem533", msg.timestamp[1] == 3);
+	mu_assert("mem534", msg.timestamp[2] == 0);
+	mu_assert("mem535", msg.timestamp[3] == 0);
+	mu_assert("mem536", msg.size == (sizeof(int)+sizeof(wnPacket_t)*3));
+	packetCount = *((int *)msg.data);
+	mu_assert("mem537", packetCount == 3);
+	packet = (wnPacket_t *)(msg.data+sizeof(int));
+	mu_assert("mem538", packet->hostid == 1);
+	mu_assert("mem539", packet->timestamp[0] == 0);
+	mu_assert("mem540", packet->timestamp[1] == 2);
+	mu_assert("mem541", packet->timestamp[2] == 0);
+	mu_assert("mem542", packet->timestamp[3] == 0);
+	mu_assert("mem543", packet->wnCount == 0);
+	packet = packet+1;
+	mu_assert("mem544", packet->hostid == 1);
+	mu_assert("mem545", packet->timestamp[0] == 0);
+	mu_assert("mem546", packet->timestamp[1] == 3);
+	mu_assert("mem547", packet->timestamp[2] == 0);
+	mu_assert("mem548", packet->timestamp[3] == 0);
+	mu_assert("mem549", packet->wnCount == MAX_HOST_NUM);
+	mu_assert("mem550", packet->wnArray[0] == 0);
+	mu_assert("mem551", packet->wnArray[1] == 1);
+	mu_assert("mem552", packet->wnArray[2] == 2);
+	mu_assert("mem553", packet->wnArray[MAX_HOST_NUM-1] == (MAX_HOST_NUM-1));
+	packet = packet+1;
+	mu_assert("mem554", packet->hostid == 1);
+	mu_assert("mem555", packet->timestamp[0] == 0);
+	mu_assert("mem556", packet->timestamp[1] == 3);
+	mu_assert("mem557", packet->timestamp[2] == 0);
+	mu_assert("mem558", packet->timestamp[3] == 0);
+	mu_assert("mem559", packet->wnCount == 1);
+	mu_assert("mem560", packet->wnArray[0] == MAX_HOST_NUM);
+//send two msgs
+	interval_t *interval4 = malloc(sizeof(interval_t));
+	memset(interval4, 0, sizeof(interval_t));
+	interval4->timestamp[1] = 4;
+	interval4->isBarrier = 1;
+	interval4->next = procArray[1].intervalList;
+	procArray[1].intervalList = interval4;	
+	
+	interval_t *interval5 = NULL;
+	int temp = 5;
+	int intervalCount = 11;
+	for(i = 0; i < intervalCount; i++){
+		interval5 = malloc(sizeof(interval_t));
+		memset(interval5, 0, sizeof(interval_t));
+		interval5->timestamp[1] = temp;
+		interval5->next = procArray[1].intervalList;
+		procArray[1].intervalList = interval5;	
+		temp++;
+		lastWnInInterval = NULL;
+		wnCount = 1;
+		for(i = 0; i < wnCount; i++){
+			writenotice_t *wn = malloc(sizeof(writenotice_t));
+			wn->interval = interval5;
+			wn->nextInPage = pageArray[i].notices[0];
+			wn->pageIndex = i;
+			pageArray[i].notices[0] = wn;
+			wn->nextInInterval = NULL;
+			if(lastWnInInterval == NULL){
+				interval5->notices = lastWnInInterval = wn;
+			}else{
+				lastWnInInterval->nextInInterval = wn;
+				lastWnInInterval = wn;
+			}
+		}
+	}
+	intervalNow = interval5;
+
+	parametertype = 1;
+	sendMsgCalled = 0;
+	nextFreeMsgInQueueCalled = 0;
+	alreadyCalled = 0;
+	memset(&msg, 0, sizeof(mimsg_t));
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		msg.timestamp[i] = -1;
+	}
+	memset(&msg2, 0, sizeof(mimsg_t));
+	for(i = 0; i < MAX_HOST_NUM; i++){
+		msg2.timestamp[i] = -1;
+	}
+	
+	myhostid = 1;
+	sendEnterBarrierInfo();	
+
+	mu_assert("mem561", parametertype == 0);
+	mu_assert("mem562", sendMsgCalled == 1);
+	mu_assert("mem563", nextFreeMsgInQueueCalled == 1);
+	mu_assert("mem564", alreadyCalled == 1);
+	mu_assert("mem565", msg.from == 1);
+	mu_assert("mem566", msg.to == 0);
+	mu_assert("mem567", msg.command == GRANT_ENTER_BARRIER_INFO);
+	mu_assert("mem568", msg.timestamp[0] == 0);
+	mu_assert("mem569", msg.timestamp[1] == 15);
+	mu_assert("mem570", msg.timestamp[2] == 0);
+	mu_assert("mem571", msg.timestamp[3] == 0);
+	mu_assert("mem572", msg.size == (sizeof(int)+sizeof(wnPacket_t)*9));
+	packetCount = *((int *)msg.data);
+	mu_assert("mem573", packetCount == 9);
+	packet = (wnPacket_t *)(msg.data+sizeof(int));
+	mu_assert("mem574", packet->hostid == 1);
+	mu_assert("mem575", packet->timestamp[0] == 0);
+	mu_assert("mem576", packet->timestamp[1] == 4);
+	mu_assert("mem577", packet->timestamp[2] == 0);
+	mu_assert("mem578", packet->timestamp[3] == 0);
+	mu_assert("mem579", packet->wnCount == 0);
+	packet = packet+1;
+	mu_assert("mem580", packet->hostid == 1);
+	mu_assert("mem581", packet->timestamp[0] == 0);
+	mu_assert("mem582", packet->timestamp[1] == 5);
+	mu_assert("mem583", packet->timestamp[2] == 0);
+	mu_assert("mem584", packet->timestamp[3] == 0);
+	mu_assert("mem585", packet->wnCount == 1);
+	mu_assert("mem586", packet->wnArray[0] == 0);
+	packet = packet+8;
+	mu_assert("mem587", packet->hostid == 1);
+	mu_assert("mem588", packet->timestamp[0] == 0);
+	mu_assert("mem589", packet->timestamp[1] == 11);
+	mu_assert("mem590", packet->timestamp[2] == 0);
+	mu_assert("mem591", packet->timestamp[3] == 0);
+	mu_assert("mem592", packet->wnCount == 1);
+	mu_assert("mem593", packet->wnArray[0] == 0);
+
+	mu_assert("mem594", msg2.from == 1);
+	mu_assert("mem595", msg2.to == 0);
+	mu_assert("mem596", msg2.command == GRANT_ENTER_BARRIER_INFO);
+	mu_assert("mem597", msg2.timestamp[0] == -1);
+	mu_assert("mem598", msg2.timestamp[1] == -1);
+	mu_assert("mem599", msg2.timestamp[2] == -1);
+	mu_assert("mem600", msg2.timestamp[3] == -1);
+	mu_assert("mem601", msg2.size == (sizeof(int)+sizeof(wnPacket_t)*4));
+	packetCount = *((int *)msg2.data);
+	mu_assert("mem602", packetCount == 4);
+	packet = (wnPacket_t *)(msg2.data+sizeof(int));
+	mu_assert("mem603", packet->hostid == 1);
+	mu_assert("mem604", packet->timestamp[0] == 0);
+	mu_assert("mem605", packet->timestamp[1] == 12);
+	mu_assert("mem607", packet->timestamp[2] == 0);
+	mu_assert("mem608", packet->timestamp[3] == 0);
+	mu_assert("mem609", packet->wnCount == 1);
+	mu_assert("mem610", packet->wnArray[0] == 0);
+	packet = packet+1;
+	mu_assert("mem611", packet->hostid == 1);
+	mu_assert("mem612", packet->timestamp[0] == 0);
+	mu_assert("mem613", packet->timestamp[1] == 13);
+	mu_assert("mem614", packet->timestamp[2] == 0);
+	mu_assert("mem615", packet->timestamp[3] == 0);
+	mu_assert("mem616", packet->wnCount == 1);
+	mu_assert("mem617", packet->wnArray[0] == 0);
+	packet = packet+1;
+	mu_assert("mem618", packet->hostid == 1);
+	mu_assert("mem619", packet->timestamp[0] == 0);
+	mu_assert("mem620", packet->timestamp[1] == 14);
+	mu_assert("mem621", packet->timestamp[2] == 0);
+	mu_assert("mem622", packet->timestamp[3] == 0);
+	mu_assert("mem623", packet->wnCount == 1);
+	mu_assert("mem624", packet->wnArray[0] == 0);
+	packet = packet+1;
+	mu_assert("mem625", packet->hostid == 1);
+	mu_assert("mem626", packet->timestamp[0] == 0);
+	mu_assert("mem627", packet->timestamp[1] == 15);
+	mu_assert("mem628", packet->timestamp[2] == 0);
+	mu_assert("mem629", packet->timestamp[3] == 0);
+	mu_assert("mem630", packet->wnCount == 1);
+	mu_assert("mem631", packet->wnArray[0] == 0);
 
 	return 0;
 }

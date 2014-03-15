@@ -923,7 +923,60 @@ writenotice_t *addWNIIntoPacketForHost(wnPacket_t *packet, int hostid, int *time
 * This procedure will be invoked by mi_barrier procedure when one client enter a barrier and it will send all relevant writenotices and intervals to host 0.
 **/
 void sendEnterBarrierInfo(){
+	if(myhostid == 0){
+		return; // host 0 is the centralized barrier manager
+	}
+	interval_t *interval = procArray[myhostid].intervalList;
+	while(interval->isBarrier != 1){
+		interval = interval->next;
+	}
 
+	mimsg_t *msg = nextFreeMsgInQueue(0);
+	msg->from = myhostid;
+	msg->to = 0;
+	msg->command = GRANT_ENTER_BARRIER_INFO;
+	int i;
+	for(i = 0; i < hostnum; i++){
+		msg->timestamp[i] = intervalNow->timestamp[i];
+	}
+	int packetNum = 0;
+	apendMsgData(msg, (char *)&packetNum, sizeof(int)); //occupy the packetNum slot
+	wnPacket_t packet;
+
+	while(interval != NULL){
+		writenotice_t *left = addWNIIntoPacketForHost(&packet, i, interval->timestamp, interval->notices);
+		apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
+		packetNum++;
+		if(sizeof(wnPacket_t) < (MAX_MSG_SIZE - MSG_HEAD_SIZE - msg->size)){// there is no enough room for one more wnPacket, so this msg should be sent out and a new msg should be created.
+			memcpy(msg->data, &packetNum, sizeof(int));
+			sendMsg(msg);
+			msg = nextFreeMsgInQueue(0);
+			msg->from = myhostid;
+			msg->to = 0;
+			msg->command = GRANT_ENTER_BARRIER_INFO;
+			packetNum = 0;
+		}
+		while(left != NULL){// the number of writenotices of this interval is larger than MAX_WN_NUM
+			left = addWNIIntoPacketForHost(&packet, i, interval->timestamp, left);
+			apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
+			packetNum++;
+			if(sizeof(wnPacket_t) < (MAX_MSG_SIZE - MSG_HEAD_SIZE - msg->size)){
+				memcpy(msg->data, &packetNum, sizeof(int));
+				sendMsg(msg);
+				msg = nextFreeMsgInQueue(0);
+				msg->from = myhostid;
+				msg->to = 0;
+				msg->command = GRANT_ENTER_BARRIER_INFO;
+				packetNum = 0;
+			}
+		}
+		interval = interval->prev;
+	}
+	if(packetNum != 0){// one msg has not been sent out
+		memcpy(msg->data, &packetNum, sizeof(int));
+		sendMsg(msg);
+	}
+	
 }
 
 

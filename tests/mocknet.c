@@ -1,14 +1,21 @@
 #include "../src/net.h"
 
 mimsg_t msg;
+mimsg_t msg2;
 int parametertype;
 int sendMsgCalled = 0;
 int nextFreeMsgInQueueCalled = 0;
+int alreadyCalled = 0;
 
 mimsg_t *nextFreeMsgInQueue(int type){
 	parametertype = type;
 	nextFreeMsgInQueueCalled = 1;
-	return &msg;
+	if(alreadyCalled == 1){
+		return &msg2;
+	}else{
+		alreadyCalled = 1;
+		return &msg;
+	}
 }
 
 
