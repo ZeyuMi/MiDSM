@@ -815,8 +815,7 @@ void handleGrantWNIMsg(mimsg_t *msg){
 	printf("packetNum = %d\n",packetNum);
 	wnPacket_t *packet =(wnPacket_t *)(msg->data + sizeof(int));
 	for(i = 0; i < packetNum; i++){
-		packet = packet + i;	
-		incorporateWnPacket(packet);
+		incorporateWnPacket(packet+i);
 	}
 	fetchWNIWaitFlag = 0;
 }
@@ -940,48 +939,54 @@ void sendEnterBarrierInfo(){
 		msg->timestamp[i] = intervalNow->timestamp[i];
 	}
 	int packetNum = 0;
+	int firstMsgSent = 0;
 	apendMsgData(msg, (char *)&packetNum, sizeof(int)); //occupy the packetNum slot
 	wnPacket_t packet;
 
 	while(interval != NULL){
-		writenotice_t *left = addWNIIntoPacketForHost(&packet, i, interval->timestamp, interval->notices);
-		apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
-		packetNum++;
-		if(sizeof(wnPacket_t) < (MAX_MSG_SIZE - MSG_HEAD_SIZE - msg->size)){// there is no enough room for one more wnPacket, so this msg should be sent out and a new msg should be created.
-			memcpy(msg->data, &packetNum, sizeof(int));
-			sendMsg(msg);
-			msg = nextFreeMsgInQueue(0);
-			msg->from = myhostid;
-			msg->to = 0;
-			msg->command = GRANT_ENTER_BARRIER_INFO;
-			packetNum = 0;
-		}
-		while(left != NULL){// the number of writenotices of this interval is larger than MAX_WN_NUM
-			left = addWNIIntoPacketForHost(&packet, i, interval->timestamp, left);
+		if(interval->notices != NULL){
+			writenotice_t *left = addWNIIntoPacketForHost(&packet, myhostid, interval->timestamp, interval->notices);
 			apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
 			packetNum++;
-			if(sizeof(wnPacket_t) < (MAX_MSG_SIZE - MSG_HEAD_SIZE - msg->size)){
+			if(sizeof(wnPacket_t) > (MAX_MSG_SIZE - MSG_HEAD_SIZE - msg->size)){// there is no enough room for one more wnPacket, so this msg should be sent out and a new msg should be created.
 				memcpy(msg->data, &packetNum, sizeof(int));
 				sendMsg(msg);
+				firstMsgSent = 1;
 				msg = nextFreeMsgInQueue(0);
 				msg->from = myhostid;
 				msg->to = 0;
 				msg->command = GRANT_ENTER_BARRIER_INFO;
+				apendMsgData(msg, (char *)&packetNum, sizeof(int)); //occupy the packetNum slot
 				packetNum = 0;
+			}
+			while(left != NULL){// the number of writenotices of this interval is larger than MAX_WN_NUM
+				left = addWNIIntoPacketForHost(&packet, myhostid, interval->timestamp, left);
+				apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
+				packetNum++;
+				if(sizeof(wnPacket_t) > (MAX_MSG_SIZE - MSG_HEAD_SIZE - msg->size)){
+					memcpy(msg->data, &packetNum, sizeof(int));
+					sendMsg(msg);
+					firstMsgSent = 1;
+					msg = nextFreeMsgInQueue(0);
+					msg->from = myhostid;
+					msg->to = 0;
+					msg->command = GRANT_ENTER_BARRIER_INFO;
+					apendMsgData(msg, (char *)&packetNum, sizeof(int)); //occupy the packetNum slot
+					packetNum = 0;
+				}
 			}
 		}
 		interval = interval->prev;
 	}
-	if(packetNum != 0){// one msg has not been sent out
+	if(packetNum != 0 || firstMsgSent == 0){//one msg has not been sent out
 		memcpy(msg->data, &packetNum, sizeof(int));
 		sendMsg(msg);
 	}
-	
 }
 
 
 /**
-* 3
+* This procedure will be invoked by checkBarrierFlags when all clients enter barrier. It will send out all intervals and related writenotices to clients according to the interval they sent to host 0, the centralized barrier mananger.
 **/
 void returnAllBarrierInfo(){
 
@@ -989,11 +994,27 @@ void returnAllBarrierInfo(){
 
 
 /**
-* 2
+* This procedure will be invoked by dispatchMsg to handle GRANT_ENTER_BARRIER_INFO msg. It will store all writenotice to local data structures.
+* parameters
+*	msg : msg to be handled
 **/
 void handleGrantEnterBarrierMsg(mimsg_t *msg){
-
-
+	if(msg == NULL){
+		return;
+	}
+	int i;
+	int *timestamp = msg->timestamp;
+	int hostid = msg->from;
+	if((timestamp[0] != -1) && (barrierTimestamps[hostid][0] == -1)){
+		for(i = 0; i < MAX_HOST_NUM; i++){
+			barrierTimestamps[hostid][i] = timestamp[i];
+		}
+	}
+	int packetNum = *((int *)msg->data);
+	wnPacket_t *packet =(wnPacket_t *)(msg->data + sizeof(int));
+	for(i = 0; i < packetNum; i++){
+		incorporateWnPacket(packet+i);
+	}
 }
 
 
