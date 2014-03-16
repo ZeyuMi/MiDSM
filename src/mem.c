@@ -1001,13 +1001,13 @@ void returnAllBarrierInfo(){
 	for(i = 0; i < hostnum; i++){
 		timestamp[i] = barrierTimestamps[i][i] + 1;
 	}
-	printf("barrier timestamp = [");
-	for(i = 0; i < hostnum; i++){
-		printf("%d ", timestamp[i]);
-	}
-	printf("]\n");
+//	printf("barrier timestamp = [");
+//	for(i = 0; i < hostnum; i++){
+//		printf("%d ", timestamp[i]);
+//	}
+//	printf("]\n");
 
-	printf("before new intervalNow\n");
+//	printf("before new intervalNow\n");
 	interval_t *interval = malloc(sizeof(interval_t));
 	memset(interval, 0, sizeof(interval_t));
 	for(i = 0; i < hostnum; i++){
@@ -1018,10 +1018,10 @@ void returnAllBarrierInfo(){
 	procArray[0].intervalList->prev = interval;
 	procArray[0].intervalList = interval;
 	intervalNow = interval;
-	printf("after new intervalNow\n");
+//	printf("after new intervalNow\n");
 
 	for(i = 1; i < hostnum; i++){
-		printf("before send for %d\n", i);
+//		printf("before send for %d\n", i);
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
 		msg->to = i;
@@ -1083,7 +1083,7 @@ void returnAllBarrierInfo(){
 			memcpy(msg->data, &packetNum, sizeof(int));
 			sendMsg(msg);
 		}
-		printf("after send for %d\n", i);
+//		printf("after send for %d\n", i);
 	}
 	for(i = 0; i < hostnum; i++){
 		int j;
