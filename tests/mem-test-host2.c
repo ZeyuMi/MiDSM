@@ -21,7 +21,7 @@ int main(int argc, char **argv){
 	mi_barrier();
 	printf("exit barrier\n");
 
-	for(i = 0; i < 10; i++){	
+	for(i = 0; i < 5; i++){	
 		printf("before lock\n");
 		mi_lock(0);
 		printf("after lock\n");
