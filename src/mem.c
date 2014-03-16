@@ -986,7 +986,7 @@ void sendEnterBarrierInfo(){
 
 
 /**
-* This procedure will be invoked by checkBarrierFlags when all clients enter barrier. It will send out all intervals and related writenotices to clients according to the interval they sent to host 0, the centralized barrier mananger.
+* This procedure will be invoked by checkBarrierFlags when all clients enter barrier. It will send out all intervals and related writenotices to clients according to the interval they sent to host 0, which is the centralized barrier mananger.
 **/
 void returnAllBarrierInfo(){
 
