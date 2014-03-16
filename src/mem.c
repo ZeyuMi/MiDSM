@@ -5,9 +5,11 @@
 #include <fcntl.h>
 #include "mem.h"
 #include "net.h"
+#include "syn.h"
 
 extern int myhostid;
 extern int hostnum;
+extern milock_t locks[LOCK_NUM];
 
 page_t pageArray[MAX_PAGE_NUM];
 proc_t procArray[MAX_HOST_NUM];
@@ -999,6 +1001,12 @@ void returnAllBarrierInfo(){
 	for(i = 0; i < hostnum; i++){
 		timestamp[i] = barrierTimestamps[i][i] + 1;
 	}
+	printf("barrier timestamp = [");
+	for(i = 0; i < hostnum; i++){
+		printf("%d ", timestamp[i]);
+	}
+	printf("]\n");
+
 	interval_t *interval = malloc(sizeof(interval_t));
 	memset(interval, 0, sizeof(interval_t));
 	for(i = 0; i < hostnum; i++){
@@ -1072,6 +1080,15 @@ void returnAllBarrierInfo(){
 				sendMsg(msg);
 			}
 		}
+	}
+	for(i = 0; i < hostnum; i++){
+		int j;
+		for(j = 0; j < hostnum; j++){
+			barrierTimestamps[i][j] = -1;
+		}
+	}
+	for(i = 0; i < LOCK_NUM; i++){
+		locks[i].lasthostid = -1;
 	}
 }
 
