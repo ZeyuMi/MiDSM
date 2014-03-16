@@ -45,7 +45,7 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 		;		// no action
 	}else if(pageArray[pageIndex].state == INVALID){
 		printf("INVALID: fetchDiff\n");
-		fetchDiff(pageIndex);	
+		fetchDiff(pageIndex);
 		pageArray[pageIndex].state = RDONLY;
 		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
 			fprintf(stderr, "INVALID mprotect error\n");
@@ -556,9 +556,6 @@ int incorporateWnPacket(wnPacket_t *packet){
 	if(find == 1 && interval != NULL){
 		lastwn = interval->notices;
 		while(lastwn != NULL && lastwn->nextInInterval != NULL){
-			if(lastwn->pageIndex == packet->wnArray[0]){
-				return -2;
-			}
 			lastwn = lastwn->nextInInterval;
 		}	
 	}else{
@@ -579,6 +576,19 @@ int incorporateWnPacket(wnPacket_t *packet){
 	printf("wnCount = %d\n", wnCount);
 	for(i = 0; i < wnCount; i++){
 		int pageIndex = (packet->wnArray)[i];
+		//check whether this writenotice exists
+		writenotice_t *tempwn = interval->notices;
+		int wnExistFlag = 0;
+		while(tempwn != NULL && wnExistFlag != 1){
+			if(tempwn->pageIndex == pageIndex){
+				wnExistFlag = 1;
+			}
+			tempwn = tempwn->nextInInterval;
+		}
+		if(wnExistFlag == 1){
+			continue; // write notice exists, go to next interation.
+		}
+		
 		printf("add writenotice for page %d\n", pageIndex);
 		if(pageArray[pageIndex].state == RDONLY){
 			printf("page %d : receive writenotice, RDONLY TO INVALID\n", pageIndex);
