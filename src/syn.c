@@ -6,6 +6,7 @@
 extern int myhostid;
 extern int hostnum;
 extern int barrierTimestamps[MAX_HOST_NUM][MAX_HOST_NUM];
+extern interval_t *intervalNow;
 
 milock_t locks[LOCK_NUM];
 int waitFlag;
