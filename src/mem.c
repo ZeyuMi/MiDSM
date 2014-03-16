@@ -989,7 +989,86 @@ void sendEnterBarrierInfo(){
 * This procedure will be invoked by checkBarrierFlags when all clients enter barrier. It will send out all intervals and related writenotices to clients according to the interval they sent to host 0, which is the centralized barrier mananger.
 **/
 void returnAllBarrierInfo(){
+	int timestamp[MAX_HOST_NUM];
+	memset(timestamp, 0, sizeof(int) * MAX_HOST_NUM);
+	int i;
+	for(i = 0; i < hostnum; i++){
+		timestamp[i] = barrierTimestamps[i][i] + 1;
+	}
+	interval_t *interval = malloc(sizeof(interval_t));
+	memset(interval, 0, sizeof(interval_t));
+	for(i = 0; i < hostnum; i++){
+		interval->timestamp[i] = timestamp[i];
+	}
+	interval->isBarrier = 1;
+	interval->next = procArray[0].intervalList;
+	procArray[0].intervalList->prev = interval;
+	procArray[0].intervalList = interval;
+	intervalNow = interval;
 
+	for(i = 1; i < hostnum; i++){
+		mimsg_t *msg = nextFreeMsgInQueue(0);
+		msg->from = myhostid;
+		msg->to = i;
+		msg->command = GRANT_EXIT_BARRIER_INFO;
+		int j;
+		for(j = 0; j < hostnum; j++){
+			msg->timestamp[j] = timestamp[j];
+		}
+		int packetNum = 0;
+		int firstMsgSent = 0;
+		apendMsgData(msg, (char *)&packetNum, sizeof(int)); //occupy the packetNum slot
+		wnPacket_t packet;
+		for(j = 0; j < hostnum; j++){
+			proc_t proc = procArray[j];
+			interval_t *intervalLast = proc.intervalList;
+			if(intervalLast == NULL){
+				continue;
+			}
+			while(intervalLast->next != NULL){
+				intervalLast = intervalLast->next;
+			}
+			while(intervalLast != NULL){
+				if(isAfterInterval(intervalLast->timestamp, barrierTimestamps[i]) && (intervalLast->notices != NULL)){
+					writenotice_t *left = addWNIIntoPacketForHost(&packet, j, intervalLast->timestamp, intervalLast->notices);
+					apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
+					packetNum++;
+					if(sizeof(wnPacket_t) > (MAX_MSG_SIZE - MSG_HEAD_SIZE - msg->size)){// there is no enough room for one more wnPacket, so this msg should be sent out and a new msg should be created.
+						memcpy(msg->data, &packetNum, sizeof(int));
+						sendMsg(msg);
+						firstMsgSent = 1;
+						msg = nextFreeMsgInQueue(0);
+						msg->from = myhostid;
+						msg->to = i;
+						msg->command = GRANT_EXIT_BARRIER_INFO;
+						apendMsgData(msg, (char *)&packetNum, sizeof(int)); //occupy the packetNum slot
+						packetNum = 0;
+					}
+					while(left != NULL){// the number of writenotices of this interval is larger than MAX_WN_NUM
+						left = addWNIIntoPacketForHost(&packet, j, intervalLast->timestamp, left);
+						apendMsgData(msg, (char *)&packet, sizeof(wnPacket_t));
+						packetNum++;
+						if(sizeof(wnPacket_t) > (MAX_MSG_SIZE - MSG_HEAD_SIZE - msg->size)){
+							memcpy(msg->data, &packetNum, sizeof(int));
+							sendMsg(msg);
+							firstMsgSent = 1;
+							msg = nextFreeMsgInQueue(0);
+							msg->from = myhostid;
+							msg->to = 0;
+							msg->command = GRANT_EXIT_BARRIER_INFO;
+							apendMsgData(msg, (char *)&packetNum, sizeof(int)); //occupy the packetNum slot
+							packetNum = 0;
+						}
+					}
+				}
+				intervalLast = intervalLast->prev;
+			}
+			if(packetNum != 0 || firstMsgSent == 0){//one msg has not been sent out
+				memcpy(msg->data, &packetNum, sizeof(int));
+				sendMsg(msg);
+			}
+		}
+	}
 }
 
 
@@ -1019,10 +1098,34 @@ void handleGrantEnterBarrierMsg(mimsg_t *msg){
 
 
 /**
-* 4
+* This procedure will be invoked by dispatchMsg to handle GRANT_EXIT_BARRIER_INFO msg. It will store all writenotices to local data structures
+* parameters
+*	msg : msg to be handled
 **/
 void handleGrantExitBarrierMsg(mimsg_t *msg){
-
+	if(msg == NULL){
+		return;
+	}
+	int i;
+	int *timestamp = msg->timestamp;
+	int hostid = msg->from;
+	if(timestamp[0] != -1){
+		interval_t *interval = malloc(sizeof(interval_t));
+		memset(interval, 0, sizeof(interval_t));
+		for(i = 0; i < MAX_HOST_NUM; i++){
+			interval->timestamp[i] = timestamp[i];
+		}
+		interval->isBarrier = 1;
+		procArray[myhostid].intervalList->prev = interval;
+		interval->next = procArray[myhostid].intervalList;
+		procArray[myhostid].intervalList = interval;
+		intervalNow = interval;
+	}
+	int packetNum = *((int *)msg->data);
+	wnPacket_t *packet =(wnPacket_t *)(msg->data + sizeof(int));
+	for(i = 0; i < packetNum; i++){
+		incorporateWnPacket(packet+i);
+	}
 }
 
 
