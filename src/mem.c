@@ -1007,6 +1007,7 @@ void returnAllBarrierInfo(){
 	}
 	printf("]\n");
 
+	printf("before new intervalNow\n");
 	interval_t *interval = malloc(sizeof(interval_t));
 	memset(interval, 0, sizeof(interval_t));
 	for(i = 0; i < hostnum; i++){
@@ -1017,8 +1018,10 @@ void returnAllBarrierInfo(){
 	procArray[0].intervalList->prev = interval;
 	procArray[0].intervalList = interval;
 	intervalNow = interval;
+	printf("after new intervalNow\n");
 
 	for(i = 1; i < hostnum; i++){
+		printf("before send for %d\n", i);
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
 		msg->to = i;
@@ -1075,11 +1078,12 @@ void returnAllBarrierInfo(){
 				}
 				intervalLast = intervalLast->prev;
 			}
-			if(packetNum != 0 || firstMsgSent == 0){//one msg has not been sent out
-				memcpy(msg->data, &packetNum, sizeof(int));
-				sendMsg(msg);
-			}
 		}
+		if(packetNum != 0 || firstMsgSent == 0){//one msg has not been sent out
+			memcpy(msg->data, &packetNum, sizeof(int));
+			sendMsg(msg);
+		}
+		printf("after send for %d\n", i);
 	}
 	for(i = 0; i < hostnum; i++){
 		int j;
