@@ -414,7 +414,9 @@ int checkBarrierFlags(){
 			return -1;
 		}
 	}
+	printf("before returnAllBarrierInfo\n");
 	returnAllBarrierInfo();
+	printf("after returnAllBarrierInfo\n");
 	mimsg_t *msg;
 	for(i = 1; i < hostnum; i++){
 		msg = nextFreeMsgInQueue(0);
@@ -426,6 +428,7 @@ int checkBarrierFlags(){
 	for(i = 0; i < hostnum; i++){
 		barrierFlags[i] = 0;
 	}
+	printf("after send out EXIT_BARRIER\n");
 	return 0;
 }
 
