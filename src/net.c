@@ -414,6 +414,14 @@ void dispatchMsg(mimsg_t *msg){
 			printf("receive msg FETCH_DIFF\n");
 			handleFetchDiffMsg(msg);
 			break;
+		case GRANT_ENTER_BARRIER_INFO:
+			printf("receive msg GRANT_ENTER_BARRIER_INFO\n");
+			handleGrantEnterBarrierMsg(msg);
+			break;
+		case GRANT_EXIT_BARRIER_INFO:
+			printf("receive msg GRANT_EXIT_BARRIER_INFO\n");
+			handleGrantExitBarrierMsg(msg);
+			break;
 		default: 
 			fprintf(stderr, "command %d has no handler\n", msg->command);
 			break;

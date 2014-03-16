@@ -523,6 +523,7 @@ void *createLocalDiff(void *pageAddress, void *twinAddress){
 * return value
 *	 0 --- success
 *	-1 --- parameters error
+*	-2 --- this packet has already been incorporated
 **/
 int incorporateWnPacket(wnPacket_t *packet){
 	printf("entering incorporateWnPacket\n");
@@ -553,6 +554,9 @@ int incorporateWnPacket(wnPacket_t *packet){
 	if(find == 1 && interval != NULL){
 		lastwn = interval->notices;
 		while(lastwn != NULL && lastwn->nextInInterval != NULL){
+			if(lastwn->pageIndex == packet->wnArray[0]){
+				return -2;
+			}
 			lastwn = lastwn->nextInInterval;
 		}	
 	}else{

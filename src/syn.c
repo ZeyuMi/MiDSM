@@ -5,6 +5,7 @@
 
 extern int myhostid;
 extern int hostnum;
+extern int barrierTimestamps[MAX_HOST_NUM][MAX_HOST_NUM];
 
 milock_t locks[LOCK_NUM];
 int waitFlag;
@@ -166,11 +167,16 @@ void mi_barrier(){
 	disableSigio();
 	if(myhostid == 0){
 		barrierFlags[0] = 1;
+		int i;
+		for(i = 0; i < hostnum; i++){
+			barrierTimestamps[0][i] = intervalNow->timestamp[i];
+		}
 		int result = checkBarrierFlags();
 		if(result == 0){
 			return;
 		}
 	}else{
+		sendEnterBarrierInfo();
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
 		msg->to = 0;
@@ -407,6 +413,7 @@ int checkBarrierFlags(){
 			return -1;
 		}
 	}
+	returnAllBarrierInfo();
 	mimsg_t *msg;
 	for(i = 1; i < hostnum; i++){
 		msg = nextFreeMsgInQueue(0);
