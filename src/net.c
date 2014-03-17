@@ -40,7 +40,7 @@ void testCommand(mimsg_t *msg){
 void sigio_handler(int sigio, siginfo_t *info, void *context){
 //	printf("entering into sigio_handler\n");
 //	printf("before block\n");
-//	disableSigio();
+	disableSigio();
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
 	polltime.tv_sec = 0;
@@ -99,7 +99,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		dispatchMsg(msg);
 		msgDequeue(1);
 	}
-	//enableSigio();
+	enableSigio();
 	
 }
 
