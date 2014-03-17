@@ -242,6 +242,7 @@ int msgEnqueue(int type){
 			return -2;
 		}else{
 			sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
+			printf("sndTail = %d\n",sndTail);
 			sndQueueSize++;
 			printf("sndQueueSize == %d\n", sndQueueSize);
 		}
@@ -252,6 +253,7 @@ int msgEnqueue(int type){
 			return -2;
 		}else{
 			recvTail = (recvTail + 1) % MAX_QUEUE_SIZE;	
+			printf("recvTail = %d\n",recvTail);
 			recvQueueSize++;
 			printf("recvQueueSize == %d\n", recvQueueSize);
 		}
@@ -335,6 +337,7 @@ mimsg_t *queueTop(int type){
 		}else{
 			printf("queueTop enableSigio\n");
 			enableSigio();
+			printf("queueTop sndHead = %d\n", sndHead);
 			return &(sndQueue[sndHead]);
 		}
 	}else{
@@ -345,6 +348,7 @@ mimsg_t *queueTop(int type){
 		}else{
 			printf("queueTop enableSigio\n");
 			enableSigio();
+			printf("queueTop recvHead = %d\n", recvHead);
 			return &(recvQueue[recvHead]);
 		}
 	}
@@ -375,7 +379,9 @@ int msgDequeue(int type){
 			return -2;	
 		}else{
 			sndHead = (sndHead + 1) % MAX_QUEUE_SIZE;
+			printf("sndHead = %d\n",sndHead);
 			sndQueueSize--;
+			printf("sndQueueSize == %d\n", sndQueueSize);
 		}
 	}else{
 		if(recvQueueSize == 0){
@@ -384,7 +390,9 @@ int msgDequeue(int type){
 			return -2;	
 		}else{
 			recvHead = (recvHead + 1) % MAX_QUEUE_SIZE;
+			printf("recvHead = %d\n",recvHead);
 			recvQueueSize--;
+			printf("recvQueueSize == %d\n", recvQueueSize);
 		}
 	}
 	printf("msgDequeue enableSigio4\n");
