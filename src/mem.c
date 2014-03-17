@@ -31,7 +31,9 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 	}
 	if(pageArray[pageIndex].state == RDONLY){
 		printf("RDONLY: createWritenotice for page %d\n", pageIndex);
+		printf("before twinPage\n");
 		createTwinPage(pageIndex);
+		printf("before writenotice\n");
 		createWriteNotice(pageIndex);
 		printf("RDONLY: createWritenotice for page %d done\n", pageIndex);
 		pageArray[pageIndex].state = WRITE;
@@ -651,6 +653,7 @@ int createWriteNotice(int pageIndex){
 	wn->diffAddress = NULL;
 	wn->pageIndex = pageIndex;
 
+	printf("createWriteNotice : pageIndex = %d\n", pageIndex);
 	wn->nextInPage = pageArray[pageIndex].notices[myhostid];
 	pageArray[pageIndex].notices[myhostid] = wn;
 	writenotice_t *temp = intervalNow->notices;
