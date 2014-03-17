@@ -63,7 +63,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 //					printf("before recvFrom\n");
 					int size = recvfrom(fd, msg, sizeof(mimsg_t), 0,(struct sockaddr *) &addr, &s);
 					if(size == -1){
-						printf("err: %s\n", strerror(errno));
+						printf("err1: %s\n", strerror(errno));
 					}
 
 
@@ -490,7 +490,7 @@ int sendMsg(mimsg_t *msg){
 				polltime.tv_usec = 0;
 				int num = select(fd+1, &set, NULL, NULL, &polltime);
 				if(num == -1){
-					printf("err: %s\n", strerror(errno));
+					printf("err2: %s\n", strerror(errno));
 				}
 				if(num > 0){
 					int seqno = 0;	
