@@ -379,7 +379,7 @@ void dispatchMsg(mimsg_t *msg){
 			handleReleaseMsg(msg);
 			break;
 		case GRANT_LOCK:
-//			printf("receive msg GRANT_LOCK\n");
+			printf("receive msg GRANT_LOCK\n");
 			handleGrantMsg(msg);
 			break;
 		case ENTER_BARRIER:
