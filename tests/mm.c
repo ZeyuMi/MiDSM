@@ -32,6 +32,8 @@ int main(int argc, char **argv)
 	int error;
 	int local[N][N] = { 0 };
 
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
 	mi_init(argc, argv);
 
 	mi_barrier();

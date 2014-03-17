@@ -74,6 +74,7 @@ void *mi_alloc(int size){
 	int rsize = (size % PAGESIZE == 0) ? size : (size / PAGESIZE + 1) * PAGESIZE;
 	int allocesize = rsize;
 	if(rsize + globalAddress > (void *)MAX_MEM_SIZE){
+		fprintf(stderr, "No enough space to allocate!\n");
 		return NULL;
 	}
 	while(allocesize > 0){
