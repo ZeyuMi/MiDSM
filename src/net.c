@@ -282,7 +282,7 @@ mimsg_t *nextFreeMsgInQueue(int type){
 			for(i = 0; i < MAX_HOST_NUM; i++){
 				sndQueue[sndTail].timestamp[i] = -1;
 			}
-			printf("nextFreeMsgInQueue sndTail = %d\n", sndTail);
+	//		printf("nextFreeMsgInQueue sndTail = %d\n", sndTail);
 			return &(sndQueue[sndTail]);
 		}
 	}else{
@@ -386,55 +386,55 @@ void dispatchMsg(mimsg_t *msg){
 			testCommand(msg);
 			break;
 		case ACQ_LOCK:
-			printf("receive msg ACQ_LOCK\n");
+//			printf("receive msg ACQ_LOCK\n");
 			handleAcquireMsg(msg);
 			break;
 		case RLS_LOCK:
-			printf("receive msg RLS_LOCK\n");
+//			printf("receive msg RLS_LOCK\n");
 			handleReleaseMsg(msg);
 			break;
 		case GRANT_LOCK:
-			printf("receive msg GRANT_LOCK\n");
+//			printf("receive msg GRANT_LOCK\n");
 			handleGrantMsg(msg);
 			break;
 		case ENTER_BARRIER:
-			printf("receive msg ENTER_BARRIER\n");
+//			printf("receive msg ENTER_BARRIER\n");
 			handleEnterBarrierMsg(msg);
 			break;
 		case EXIT_BARRIER:
-			printf("receive msg EXIT_BARRIER\n");
+//			printf("receive msg EXIT_BARRIER\n");
 			handleExitBarrierMsg(msg);
 			break;
 		case GRANT_WN_I:
-			printf("receive msg GRANT_WN_I\n");
+//			printf("receive msg GRANT_WN_I\n");
 			handleGrantWNIMsg(msg);
 			break;
 		case GRANT_DIFF:
-			printf("receive msg GRANT_DIFF\n");
+//			printf("receive msg GRANT_DIFF\n");
 			handleGrantDiffMsg(msg);
 			break;
 		case GRANT_PAGE:
-			printf("receive msg GRANT_PAGE\n");
+//			printf("receive msg GRANT_PAGE\n");
 			handleGrantPageMsg(msg);
 			break;
 		case FETCH_PAGE:
-			printf("receive msg FETCH_PAGE\n");
+//			printf("receive msg FETCH_PAGE\n");
 			handleFetchPageMsg(msg); 
 			break;
 		case FETCH_WN_I:
-			printf("receive msg FETCH_WN_I\n");
+//			printf("receive msg FETCH_WN_I\n");
 			handleFetchWNIMsg(msg);
 			break;
 		case FETCH_DIFF:
-			printf("receive msg FETCH_DIFF\n");
+//			printf("receive msg FETCH_DIFF\n");
 			handleFetchDiffMsg(msg);
 			break;
 		case GRANT_ENTER_BARRIER_INFO:
-			printf("receive msg GRANT_ENTER_BARRIER_INFO\n");
+//			printf("receive msg GRANT_ENTER_BARRIER_INFO\n");
 			handleGrantEnterBarrierMsg(msg);
 			break;
 		case GRANT_EXIT_BARRIER_INFO:
-			printf("receive msg GRANT_EXIT_BARRIER_INFO\n");
+//			printf("receive msg GRANT_EXIT_BARRIER_INFO\n");
 			handleGrantExitBarrierMsg(msg);
 			break;
 		default: 

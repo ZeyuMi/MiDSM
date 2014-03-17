@@ -678,8 +678,8 @@ int createWriteNotice(int pageIndex){
 void handleFetchPageMsg(mimsg_t *msg){
 	int from = msg->from;
 	int pageIndex = *((int *)msg->data);
-	printf("fetchPage msg pageIndex = %d\n", pageIndex);
-	printf("msg from = %d\n", from);
+	//printf("fetchPage msg pageIndex = %d\n", pageIndex);
+	//printf("msg from = %d\n", from);
 	grantPage(from, pageIndex);
 }
 
