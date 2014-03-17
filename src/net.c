@@ -243,6 +243,7 @@ int msgEnqueue(int type){
 		}else{
 			sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
 			printf("sndTail = %d\n",sndTail);
+			printf("msg->command = %d\n", sndQueue[sndTail-1].command);
 			sndQueueSize++;
 			printf("sndQueueSize == %d\n", sndQueueSize);
 		}
