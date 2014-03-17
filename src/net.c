@@ -229,28 +229,33 @@ int createSocket(short int port, int isRecv, int bufSize){
 *	-2 --- queue is full
 **/
 int msgEnqueue(int type){
+	printf("msgEnqueue disableSigio\n");
 	disableSigio();
 	if((type != 0) && (type != 1)){
-		return -1;	
+		printf("msgEnqueue enableSigio\n");
 		enableSigio();
+		return -1;	
 	}
 	if(type == 0){
 		if(sndQueueSize == MAX_QUEUE_SIZE){
-			return -2;
+			printf("msgEnqueue enableSigio\n");
 			enableSigio();
+			return -2;
 		}else{
 			sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
 			sndQueueSize++;
 		}
 	}else{
 		if(recvQueueSize == MAX_QUEUE_SIZE){
-			return -2;
+			printf("msgEnqueue enableSigio\n");
 			enableSigio();
+			return -2;
 		}else{
 			recvTail = (recvTail + 1) % MAX_QUEUE_SIZE;	
 			recvQueueSize++;
 		}
 	}
+	printf("msgEnqueue enableSigio\n");
 	enableSigio();
 	return 0;
 }
@@ -314,26 +319,32 @@ mimsg_t *nextFreeMsgInQueue(int type){
 *	NULL     --- queue is empty or the value of type is wrong
 **/
 mimsg_t *queueTop(int type){
+	printf("queueTop diableSigio\n");
 	disableSigio();
 	if(type != 0 && type != 1){
-		return NULL;
+		printf("queueTop enableSigio\n");
 		enableSigio();
+		return NULL;
 	}
 	if(type == 0){
 		if(sndQueueSize == 0){
+			printf("queueTop enableSigio\n");
+			enableSigio();
 			return NULL;
-			enableSigio();
 		}else{
-			return &(sndQueue[sndHead]);
+			printf("queueTop enableSigio\n");
 			enableSigio();
+			return &(sndQueue[sndHead]);
 		}
 	}else{
 		if(recvQueueSize == 0){
+			printf("queueTop enableSigio\n");
+			enableSigio();
 			return NULL;
-			enableSigio();
 		}else{
-			return &(recvQueue[recvHead]);
+			printf("queueTop enableSigio\n");
 			enableSigio();
+			return &(recvQueue[recvHead]);
 		}
 	}
 }
@@ -349,28 +360,33 @@ mimsg_t *queueTop(int type){
 *	-2 --- queue is empty
 **/
 int msgDequeue(int type){
+	printf("msgDequeue disableSigio\n");
 	disableSigio();
 	if(type != 0 && type != 1){
-		return -1;
+		printf("msgDequeue enableSigio\n");
 		enableSigio();
+		return -1;
 	}
 	if(type == 0){
 		if(sndQueueSize == 0){
-			return -2;	
+			printf("msgDequeue enableSigio\n");
 			enableSigio();
+			return -2;	
 		}else{
 			sndHead = (sndHead + 1) % MAX_QUEUE_SIZE;
 			sndQueueSize--;
 		}
 	}else{
 		if(recvQueueSize == 0){
-			return -2;	
+			printf("msgDequeue enableSigio\n");
 			enableSigio();
+			return -2;	
 		}else{
 			recvHead = (recvHead + 1) % MAX_QUEUE_SIZE;
 			recvQueueSize--;
 		}
 	}
+	printf("msgDequeue enableSigio\n");
 	enableSigio();
 	return 0;
 }
@@ -483,6 +499,7 @@ int sendMsg(mimsg_t *msg){
 		while((retryNum < MAX_RETRY_NUM) && (success != 1)){
 
 			printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d, command = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port, m->command);
+			printf("isSigioDisabled = %d\n", isSigioDisabled);
 
 			printf("before sendto\n");
 			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, (struct sockaddr *)&dest, sizeof(dest));
