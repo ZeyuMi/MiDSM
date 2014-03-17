@@ -204,6 +204,8 @@ void handleAcquireMsg(mimsg_t *msg){
 		int result = graspLock(lockno, hostid);
 		if(result >= -1){
 			grantLock(lockno, hostid);	
+		}else{
+			printf("lock %d with result %d\n", lockno, result);
 		}
 	}	
 }
