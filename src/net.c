@@ -441,7 +441,10 @@ int sendMsg(mimsg_t *msg){
 	if(msg == NULL || msg->from != myhostid || msg->to == -1 || msg->command == -1){
 		return -1;
 	}
+	disableSigio()
 	msg->seqno = datamanager.snd_seqs[msg->to];
+	(datamanager.snd_seqs[msg->to])++;
+	enableSigio();
 	msgEnqueue(0);
 	
 	//printf("before empty sndQueue\n");
@@ -494,7 +497,6 @@ int sendMsg(mimsg_t *msg){
 	//				printf("before select\n");
 					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
 					if(seqno == m->seqno){
-						(datamanager.snd_seqs[msg->to])++;
 						success = 1;
 						printf("seqno %d received ack!\n", seqno);
 					}	
