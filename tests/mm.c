@@ -3,7 +3,7 @@
 #include "../src/mem.h"
 #include "../src/syn.h"
 
-#define N 512
+#define N 10 
 int (*a)[N], (*b)[N], (*c)[N];
 extern int myhostid;
 extern int hostnum;
@@ -113,6 +113,7 @@ int main(int argc, char **argv)
 		if (error == 1) 
 			printf("NOTE: There is some error in the program!\n");
 	}
+	printf("program will exit\n");
 	mi_barrier();
 } 
 
