@@ -9,7 +9,7 @@ extern int barrierTimestamps[MAX_HOST_NUM][MAX_HOST_NUM];
 extern interval_t *intervalNow;
 
 milock_t locks[LOCK_NUM];
-int waitFlag;
+volatile int waitFlag;
 int myLocks[LOCK_NUM];
 int barrierFlags[MAX_HOST_NUM];
 int lasthostid;
