@@ -41,7 +41,6 @@ void testCommand(mimsg_t *msg){
 void sigio_handler(int sigio, siginfo_t *info, void *context){
 //	printf("entering into sigio_handler\n");
 //	printf("before block\n");
-	disableSigio();
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
 	polltime.tv_sec = 0;
@@ -97,10 +96,10 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 //	printf("after unblock\n");
 	while(recvQueueSize > 0){
 		mimsg_t *msg = queueTop(1);
+		printf("msg->command = %d\n", msg->command);
 		dispatchMsg(msg);
 		msgDequeue(1);
 	}
-	enableSigio();
 	
 }
 
@@ -244,6 +243,7 @@ int msgEnqueue(int type){
 		}else{
 			sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
 			sndQueueSize++;
+			printf("sndQueueSize == %d\n", sndQueueSize);
 		}
 	}else{
 		if(recvQueueSize == MAX_QUEUE_SIZE){
@@ -253,6 +253,7 @@ int msgEnqueue(int type){
 		}else{
 			recvTail = (recvTail + 1) % MAX_QUEUE_SIZE;	
 			recvQueueSize++;
+			printf("recvQueueSize == %d\n", recvQueueSize);
 		}
 	}
 	printf("msgEnqueue enableSigio\n");
@@ -363,13 +364,13 @@ int msgDequeue(int type){
 	printf("msgDequeue disableSigio\n");
 	disableSigio();
 	if(type != 0 && type != 1){
-		printf("msgDequeue enableSigio\n");
+		printf("msgDequeue enableSigio1\n");
 		enableSigio();
 		return -1;
 	}
 	if(type == 0){
 		if(sndQueueSize == 0){
-			printf("msgDequeue enableSigio\n");
+			printf("msgDequeue enableSigio2\n");
 			enableSigio();
 			return -2;	
 		}else{
@@ -378,7 +379,7 @@ int msgDequeue(int type){
 		}
 	}else{
 		if(recvQueueSize == 0){
-			printf("msgDequeue enableSigio\n");
+			printf("msgDequeue enableSigio3\n");
 			enableSigio();
 			return -2;	
 		}else{
@@ -386,8 +387,9 @@ int msgDequeue(int type){
 			recvQueueSize--;
 		}
 	}
-	printf("msgDequeue enableSigio\n");
+	printf("msgDequeue enableSigio4\n");
 	enableSigio();
+	printf("msgDequeue enableSigio successfully\n");
 	return 0;
 }
 
@@ -548,8 +550,9 @@ int sendMsg(mimsg_t *msg){
 			fprintf(stderr, "msg from %d to %d does not receive ack %d\n", m->from, m->to, m->seqno);
 		}
 		msgDequeue(0);
+		printf("sndQueueSize = %d\n",sndQueueSize);
 	}
-	//printf("after empty sndQueue\n");
+	printf("after empty sndQueue\n");
 	isSendingMsg = 0;
 	return 0;
 }
