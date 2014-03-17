@@ -229,38 +229,28 @@ int createSocket(short int port, int isRecv, int bufSize){
 *	-2 --- queue is full
 **/
 int msgEnqueue(int type){
-	printf("msgEnqueue disableSigio\n");
-	disableSigio();
 	if((type != 0) && (type != 1)){
-		printf("msgEnqueue enableSigio\n");
-		enableSigio();
 		return -1;	
 	}
 	if(type == 0){
 		if(sndQueueSize == MAX_QUEUE_SIZE){
-			printf("msgEnqueue enableSigio\n");
-			enableSigio();
 			return -2;
 		}else{
 			sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
-			printf("sndTail = %d\n",sndTail);
+			//printf("sndTail = %d\n",sndTail);
 			sndQueueSize++;
-			printf("sndQueueSize == %d\n", sndQueueSize);
+			//printf("sndQueueSize == %d\n", sndQueueSize);
 		}
 	}else{
 		if(recvQueueSize == MAX_QUEUE_SIZE){
-			printf("msgEnqueue enableSigio\n");
-			enableSigio();
 			return -2;
 		}else{
 			recvTail = (recvTail + 1) % MAX_QUEUE_SIZE;	
-			printf("recvTail = %d\n",recvTail);
+			//printf("recvTail = %d\n",recvTail);
 			recvQueueSize++;
-			printf("recvQueueSize == %d\n", recvQueueSize);
+			//printf("recvQueueSize == %d\n", recvQueueSize);
 		}
 	}
-	printf("msgEnqueue enableSigio\n");
-	enableSigio();
 	return 0;
 }
 
@@ -324,33 +314,21 @@ mimsg_t *nextFreeMsgInQueue(int type){
 *	NULL     --- queue is empty or the value of type is wrong
 **/
 mimsg_t *queueTop(int type){
-	printf("queueTop diableSigio\n");
-	disableSigio();
 	if(type != 0 && type != 1){
-		printf("queueTop enableSigio\n");
-		enableSigio();
 		return NULL;
 	}
 	if(type == 0){
 		if(sndQueueSize == 0){
-			printf("queueTop enableSigio\n");
-			enableSigio();
 			return NULL;
 		}else{
-			printf("queueTop enableSigio\n");
-			enableSigio();
-			printf("queueTop sndHead = %d\n", sndHead);
+			//printf("queueTop sndHead = %d\n", sndHead);
 			return &(sndQueue[sndHead]);
 		}
 	}else{
 		if(recvQueueSize == 0){
-			printf("queueTop enableSigio\n");
-			enableSigio();
 			return NULL;
 		}else{
-			printf("queueTop enableSigio\n");
-			enableSigio();
-			printf("queueTop recvHead = %d\n", recvHead);
+			//printf("queueTop recvHead = %d\n", recvHead);
 			return &(recvQueue[recvHead]);
 		}
 	}
@@ -367,39 +345,28 @@ mimsg_t *queueTop(int type){
 *	-2 --- queue is empty
 **/
 int msgDequeue(int type){
-	printf("msgDequeue disableSigio\n");
-	disableSigio();
 	if(type != 0 && type != 1){
-		printf("msgDequeue enableSigio1\n");
-		enableSigio();
 		return -1;
 	}
 	if(type == 0){
 		if(sndQueueSize == 0){
-			printf("msgDequeue enableSigio2\n");
-			enableSigio();
 			return -2;	
 		}else{
 			sndHead = (sndHead + 1) % MAX_QUEUE_SIZE;
-			printf("sndHead = %d\n",sndHead);
+			//printf("sndHead = %d\n",sndHead);
 			sndQueueSize--;
-			printf("sndQueueSize == %d\n", sndQueueSize);
+			//printf("sndQueueSize == %d\n", sndQueueSize);
 		}
 	}else{
 		if(recvQueueSize == 0){
-			printf("msgDequeue enableSigio3\n");
-			enableSigio();
 			return -2;	
 		}else{
 			recvHead = (recvHead + 1) % MAX_QUEUE_SIZE;
-			printf("recvHead = %d\n",recvHead);
+			//printf("recvHead = %d\n",recvHead);
 			recvQueueSize--;
-			printf("recvQueueSize == %d\n", recvQueueSize);
+			//printf("recvQueueSize == %d\n", recvQueueSize);
 		}
 	}
-	printf("msgDequeue enableSigio4\n");
-	enableSigio();
-	printf("msgDequeue enableSigio successfully\n");
 	return 0;
 }
 
