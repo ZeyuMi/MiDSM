@@ -403,7 +403,7 @@ void dispatchMsg(mimsg_t *msg){
 			handleGrantPageMsg(msg);
 			break;
 		case FETCH_PAGE:
-//			printf("receive msg FETCH_PAGE\n");
+			printf("receive msg FETCH_PAGE\n");
 			handleFetchPageMsg(msg); 
 			break;
 		case FETCH_WN_I:
@@ -444,7 +444,7 @@ int sendMsg(mimsg_t *msg){
 	msg->seqno = datamanager.snd_seqs[msg->to];
 	msgEnqueue(0);
 	
-//	printf("before empty sndQueue\n");
+	printf("before empty sndQueue\n");
 	while(sndQueueSize > 0){
 		mimsg_t *m = queueTop(0);
 		int to = m->to;
@@ -458,11 +458,11 @@ int sendMsg(mimsg_t *msg){
 		int success = 0;
 		while((retryNum < MAX_RETRY_NUM) && (success != 1)){
 
-//			printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d, command = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port, msg->command);
+			printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d, command = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port, msg->command);
 
-//			printf("before sendto\n");
+			printf("before sendto\n");
 			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, (struct sockaddr *)&dest, sizeof(dest));
-//			printf("after sendto\n");
+			printf("after sendto\n");
 
 			if(size == -1){
 				printf("error occur when sending data\n");
@@ -476,7 +476,7 @@ int sendMsg(mimsg_t *msg){
       			}
 			unsigned long start = current_time();
       			unsigned long end = start + mytimeout;
-//			printf("before try\n");
+			printf("before try\n");
 			while((current_time() < end) && (success != 1)){
 				fd_set set;
 				FD_ZERO(&set);
@@ -491,16 +491,16 @@ int sendMsg(mimsg_t *msg){
 				}
 				if(num > 0){
 					int seqno = 0;	
-//					printf("before select\n");
+					printf("before select\n");
 					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
 					if(seqno == m->seqno){
 						(datamanager.snd_seqs[msg->to])++;
 						success = 1;
-//						printf("seqno %d received ack!\n", seqno);
+						printf("seqno %d received ack!\n", seqno);
 					}	
 				}
 			}
-//			printf("after try\n");
+			printf("after try\n");
 			retryNum++;
 		}
 		if(success != 1){
@@ -508,7 +508,7 @@ int sendMsg(mimsg_t *msg){
 		}
 		msgDequeue(0);
 	}
-//	printf("after empty sndQueue\n");
+	printf("after empty sndQueue\n");
 	return 0;
 }
 
