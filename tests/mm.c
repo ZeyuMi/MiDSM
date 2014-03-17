@@ -70,24 +70,31 @@ int main(int argc, char **argv)
 	mi_barrier();
 	printf("exiting barrier 3\n");
 
-	for (x = 0; x < hostnum; x++) 
-	{
-		p = (myhostid + x) % hostnum;
-		printf("lock %d\n", p);
-		mi_lock(p);
-		printf("lock %d done\n", p);
-		for (y = p * magic; y < (p + 1) * magic; y++)
-		{  
-			for (z = 0; z < N; z++)
-			{  if (x == 0) c[y][z] = local[y][z];
-				else c[y][z] += local[y][z];
-			}
+//	for (x = 0; x < hostnum; x++) 
+//	{
+//		p = (myhostid + x) % hostnum;
+//		printf("lock %d\n", p);
+//		mi_lock(p);
+//		printf("lock %d done\n", p);
+//		for (y = p * magic; y < (p + 1) * magic; y++)
+//		{  
+//			for (z = 0; z < N; z++)
+//			{  if (x == 0) c[y][z] = local[y][z];
+//				else c[y][z] += local[y][z];
+//			}
+//		}
+//		printf("unlock %d\n", p);
+//		mi_unlock(p);
+//		printf("unlock %d done\n", p);
+//		if (x == 0) mi_barrier();
+//	}
+	mi_lock(0);
+	for(x = 0; x < N; x++){
+		for(y = 0; y < N; y++){
+			c[x][y] += local[x][y];
 		}
-		printf("unlock %d\n", p);
-		mi_unlock(p);
-		printf("unlock %d done\n", p);
-		if (x == 0) mi_barrier();
 	}
+	mi_unlock(0);
 
 	mi_barrier();
 
