@@ -126,8 +126,6 @@ int mi_unlock(int lockno){
 		return -2;
 	}
 	addNewInterval();//increment new interval
-	printf("mi_unlock disableSigio\n");	
-	disableSigio();
 	int result;
 	if((lockno % hostnum) == myhostid){
 		myLocks[lockno] = 0;
@@ -154,7 +152,6 @@ int mi_unlock(int lockno){
 		result = 0;
 		myLocks[lockno] = 0;
 	}
-	enableSigio();
 //	printf("exit mi_unlock\n");
 	return result;
 }
