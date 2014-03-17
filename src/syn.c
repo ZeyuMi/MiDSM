@@ -272,7 +272,7 @@ void handleGrantMsg(mimsg_t *msg){
 	if(msg == NULL){
 		return;
 	}
-	printf("handle grant lock\n");
+	//printf("handle grant lock\n");
 	int lockno = *((int *)msg->data);
 	if((lockno >= 0) && (lockno < LOCK_NUM)){
 		lasthostid = *((int *)(msg->data+sizeof(int)));
@@ -377,7 +377,7 @@ int freeLock(int lockno, int hostid){
 		if(locks[lockno].waitingListCount == 0){
 			locks[lockno].state = FREE;
 			locks[lockno].owner = -1;
-			printf("freelock1 set lasthostid=%d\n",hostid);
+		//	printf("freelock1 set lasthostid=%d\n",hostid);
 			locks[lockno].lasthostid = hostid;
 			return -5;
 		}else{
@@ -389,7 +389,7 @@ int freeLock(int lockno, int hostid){
 			locks[lockno].waitingList[(locks[lockno].waitingListCount)-1] = -1;
 			(locks[lockno].waitingListCount)--;
 			locks[lockno].owner = waitinghostid;
-			printf("freeLock2 set lasthostid = %d\n", hostid);
+		//	printf("freeLock2 set lasthostid = %d\n", hostid);
 			locks[lockno].lasthostid = hostid;
 			return waitinghostid;
 		}
@@ -414,9 +414,9 @@ int checkBarrierFlags(){
 			return -1;
 		}
 	}
-	printf("before returnAllBarrierInfo\n");
+	//printf("before returnAllBarrierInfo\n");
 	returnAllBarrierInfo();
-	printf("after returnAllBarrierInfo\n");
+	//printf("after returnAllBarrierInfo\n");
 	mimsg_t *msg;
 	for(i = 1; i < hostnum; i++){
 		msg = nextFreeMsgInQueue(0);
@@ -428,7 +428,7 @@ int checkBarrierFlags(){
 	for(i = 0; i < hostnum; i++){
 		barrierFlags[i] = 0;
 	}
-	printf("after send out EXIT_BARRIER\n");
+	//printf("after send out EXIT_BARRIER\n");
 	return 0;
 }
 
