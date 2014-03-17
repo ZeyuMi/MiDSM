@@ -292,6 +292,7 @@ mimsg_t *nextFreeMsgInQueue(int type){
 			for(i = 0; i < MAX_HOST_NUM; i++){
 				sndQueue[sndHead].timestamp[i] = -1;
 			}
+			printf("nextFreeMsgInQueue sndHead = %d\n", sndHead);
 			return &(sndQueue[sndHead]);
 		}
 	}else{
