@@ -511,7 +511,7 @@ int sendMsg(mimsg_t *msg){
 				}
 				if(num > 0){
 					int seqno = 0;	
-					printf("before select\n");
+//					printf("before select\n");
 					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
 					if(seqno == m->seqno){
 						(datamanager.snd_seqs[msg->to])++;
