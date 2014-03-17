@@ -394,7 +394,7 @@ int grantPage(int hostid, int pageIndex){
 	if(hostid == myhostid){
 		return -1;
 	}
-	if(pageIndex < 0 || pageIndex >= MAX_HOST_NUM){
+	if(pageIndex < 0 || pageIndex >= MAX_PAGE_NUM){
 		return -1;
 	}
 	if(pageArray[pageIndex].state == UNMAP || pageArray[pageIndex].state == MISS){
