@@ -461,7 +461,7 @@ int sendMsg(mimsg_t *msg){
 		int success = 0;
 		while((retryNum < MAX_RETRY_NUM) && (success != 1)){
 
-			printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d, command = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port, msg->command);
+			printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d, command = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port, m->command);
 
 			printf("before sendto\n");
 			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, (struct sockaddr *)&dest, sizeof(dest));
