@@ -529,7 +529,7 @@ void *createLocalDiff(void *pageAddress, void *twinAddress){
 *	-2 --- this packet has already been incorporated
 **/
 int incorporateWnPacket(wnPacket_t *packet){
-	printf("entering incorporateWnPacket\n");
+//	printf("entering incorporateWnPacket\n");
 	if(packet == NULL){
 		return -1;
 	}
@@ -574,7 +574,7 @@ int incorporateWnPacket(wnPacket_t *packet){
 		}
 		procArray[hostid].intervalList = interval;
 	}
-	printf("wnCount = %d\n", wnCount);
+//	printf("wnCount = %d\n", wnCount);
 	for(i = 0; i < wnCount; i++){
 		int pageIndex = (packet->wnArray)[i];
 		//check whether this writenotice exists
@@ -590,13 +590,13 @@ int incorporateWnPacket(wnPacket_t *packet){
 			continue; // write notice exists, go to next interation.
 		}
 		
-		printf("add writenotice for page %d\n", pageIndex);
+//		printf("add writenotice for page %d\n", pageIndex);
 		if(pageArray[pageIndex].state == RDONLY){
-			printf("page %d : receive writenotice, RDONLY TO INVALID\n", pageIndex);
+//			printf("page %d : receive writenotice, RDONLY TO INVALID\n", pageIndex);
 			pageArray[pageIndex].state = INVALID;	
 			mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_NONE);
 		}else if(pageArray[pageIndex].state == WRITE){
-			printf("page %d : receive writenotice, WRITE TO INVALID\n", pageIndex);
+//			printf("page %d : receive writenotice, WRITE TO INVALID\n", pageIndex);
 			pageArray[pageIndex].state = INVALID;	
 			pageArray[pageIndex].notices[myhostid]->diffAddress = createLocalDiff(pageArray[pageIndex].address, pageArray[pageIndex].twinPage);
 			freeTwinPage(pageIndex);
@@ -830,7 +830,7 @@ void handleGrantWNIMsg(mimsg_t *msg){
 	procArray[myhostid].intervalList = intervalNow;
 	
 	int packetNum = *((int *)msg->data);
-	printf("packetNum = %d\n",packetNum);
+//	printf("packetNum = %d\n",packetNum);
 	wnPacket_t *packet =(wnPacket_t *)(msg->data + sizeof(int));
 	for(i = 0; i < packetNum; i++){
 		incorporateWnPacket(packet+i);
