@@ -649,7 +649,7 @@ int createWriteNotice(int pageIndex){
 	wn->diffAddress = NULL;
 	wn->pageIndex = pageIndex;
 
-	printf("createWriteNotice : pageIndex = %d\n", pageIndex);
+	//printf("createWriteNotice : pageIndex = %d\n", pageIndex);
 	wn->nextInPage = pageArray[pageIndex].notices[myhostid];
 	pageArray[pageIndex].notices[myhostid] = wn;
 	writenotice_t *temp = intervalNow->notices;
@@ -786,7 +786,7 @@ void handleGrantPageMsg(mimsg_t *msg){
 	}
 	int pageIndex = *((int *)msg->data);
 	void *pageAddress = msg->data + sizeof(int);
-	printf("grantPage msg pageIndex = %d\n", pageIndex);
+	//printf("grantPage msg pageIndex = %d\n", pageIndex);
 
 
 
@@ -878,7 +878,7 @@ int isAfterInterval(int *timestamp, int *targetTimestamp){
 * This procedure will be invoked when releasing a lock. It will make a new interval and point it using 'intervalNow'
 **/
 void addNewInterval(){
-	printf("addNewInterval disableSigio\n");
+	//printf("addNewInterval disableSigio\n");
 	disableSigio();
 	intervalNow = malloc(sizeof(interval_t));
 	memset(intervalNow, 0, sizeof(interval_t));
