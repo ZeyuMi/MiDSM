@@ -243,7 +243,6 @@ int msgEnqueue(int type){
 		}else{
 			sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
 			printf("sndTail = %d\n",sndTail);
-			printf("msg->command = %d\n", sndQueue[sndTail-1].command);
 			sndQueueSize++;
 			printf("sndQueueSize == %d\n", sndQueueSize);
 		}
@@ -282,34 +281,34 @@ mimsg_t *nextFreeMsgInQueue(int type){
 		if(sndQueueSize == MAX_QUEUE_SIZE){
 			return NULL;
 		}else{
-			memset(&(sndQueue[sndHead]), 0, sizeof(mimsg_t));
-			sndQueue[sndHead].from = -1;
-			sndQueue[sndHead].to = -1;
-			sndQueue[sndHead].command = -1;
-			sndQueue[sndHead].size = 0;
-			sndQueue[sndHead].seqno = -1;
+			memset(&(sndQueue[sndTail]), 0, sizeof(mimsg_t));
+			sndQueue[sndTail].from = -1;
+			sndQueue[sndTail].to = -1;
+			sndQueue[sndTail].command = -1;
+			sndQueue[sndTail].size = 0;
+			sndQueue[sndTail].seqno = -1;
 			int i;
 			for(i = 0; i < MAX_HOST_NUM; i++){
-				sndQueue[sndHead].timestamp[i] = -1;
+				sndQueue[sndTail].timestamp[i] = -1;
 			}
-			printf("nextFreeMsgInQueue sndHead = %d\n", sndHead);
-			return &(sndQueue[sndHead]);
+			printf("nextFreeMsgInQueue sndTail = %d\n", sndTail);
+			return &(sndQueue[sndTail]);
 		}
 	}else{
 		if(recvQueueSize == MAX_QUEUE_SIZE){
 			return NULL;
 		}else{
-			memset(&(recvQueue[recvHead]), 0, sizeof(mimsg_t));
-			recvQueue[recvHead].from = -1;
-			recvQueue[recvHead].to = -1;
-			recvQueue[recvHead].command = -1;
-			recvQueue[recvHead].size = 0;
-			recvQueue[recvHead].seqno = -1;
+			memset(&(recvQueue[recvTail]), 0, sizeof(mimsg_t));
+			recvQueue[recvTail].from = -1;
+			recvQueue[recvTail].to = -1;
+			recvQueue[recvTail].command = -1;
+			recvQueue[recvTail].size = 0;
+			recvQueue[recvTail].seqno = -1;
 			int i;
 			for(i = 0; i < MAX_HOST_NUM; i++){
-				recvQueue[recvHead].timestamp[i] = -1;
+				recvQueue[recvTail].timestamp[i] = -1;
 			}
-			return &(recvQueue[recvHead]);
+			return &(recvQueue[recvTail]);
 		}
 	}	
 }
