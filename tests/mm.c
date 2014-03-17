@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 {
 	int x, y, z, p, magic;
 	int error;
-	int local[N][N] = { 0 };
+	int (*local)[N] = (int (*)[N])malloc(N * N * sizeof(int));
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
