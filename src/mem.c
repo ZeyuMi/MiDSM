@@ -877,6 +877,7 @@ int isAfterInterval(int *timestamp, int *targetTimestamp){
 * This procedure will be invoked when releasing a lock. It will make a new interval and point it using 'intervalNow'
 **/
 void addNewInterval(){
+	printf("addNewInterval disableSigio\n");
 	disableSigio();
 	intervalNow = malloc(sizeof(interval_t));
 	memset(intervalNow, 0, sizeof(interval_t));

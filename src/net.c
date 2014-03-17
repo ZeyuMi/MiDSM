@@ -14,12 +14,14 @@ int ackPorts[MAX_HOST_NUM][MAX_HOST_NUM];
 int sndHead, sndTail, sndQueueSize, recvHead, recvTail, recvQueueSize;
 netmanager datamanager;
 netmanager ackmanager;
+int isSigioDisabled = 0;
 
 void disableSigio(){
 	sigset_t blset;
 	sigemptyset(&blset);
 	sigaddset(&blset, SIGIO);
 	sigprocmask(SIG_BLOCK, &blset, NULL);
+	isSigioDisabled = 1;
 }
 
 void enableSigio(){
@@ -27,6 +29,7 @@ void enableSigio(){
 	sigemptyset(&blset);
 	sigaddset(&blset, SIGIO);
 	sigprocmask(SIG_UNBLOCK, &blset, NULL);
+	isSigioDisabled = 0;
 }
 
 
@@ -37,7 +40,7 @@ void testCommand(mimsg_t *msg){
 void sigio_handler(int sigio, siginfo_t *info, void *context){
 //	printf("entering into sigio_handler\n");
 //	printf("before block\n");
-	disableSigio();
+//	disableSigio();
 	fd_set readset = datamanager.recv_fdset;
 	struct timeval polltime;
 	polltime.tv_sec = 0;
@@ -71,7 +74,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 					
 
 					int seqno = msg->seqno;
-//					printf("seqno = %d\n", seqno);
+					printf("seqno = %d\n", seqno);
 					if(size > 0){
 						msgEnqueue(1);	
 						(datamanager.recv_seqs[i])++;
@@ -96,7 +99,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 		dispatchMsg(msg);
 		msgDequeue(1);
 	}
-	enableSigio();
+	//enableSigio();
 	
 }
 
@@ -475,8 +478,8 @@ int sendMsg(mimsg_t *msg){
          			mytimeout = TIMEOUT - myhostid * 50;
       			}
 			unsigned long start = current_time();
-      			unsigned long end = start + mytimeout;
-	//		printf("before try\n");
+      		unsigned long end = start + mytimeout;
+			printf("before try\n");
 			while((current_time() < end) && (success != 1)){
 				fd_set set;
 				FD_ZERO(&set);
@@ -491,7 +494,7 @@ int sendMsg(mimsg_t *msg){
 				}
 				if(num > 0){
 					int seqno = 0;	
-	//				printf("before select\n");
+					printf("before select\n");
 					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
 					if(seqno == m->seqno){
 						(datamanager.snd_seqs[msg->to])++;
@@ -500,7 +503,7 @@ int sendMsg(mimsg_t *msg){
 					}	
 				}
 			}
-	//		printf("after try\n");
+			printf("after try\n");
 			retryNum++;
 		}
 		if(success != 1){

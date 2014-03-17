@@ -15,6 +15,7 @@ int barrierFlags[MAX_HOST_NUM];
 int lasthostid;
 
 
+extern int isSigioDisabled;
 /**
 * initialization of syn module, set initial values for all global variables
 **/
@@ -89,7 +90,7 @@ int mi_lock(int lockno){
 		apendMsgData(msg, buffer, sizeof(int));
 		waitFlag = 1;
 		sendMsg(msg);
-		printf("waiting lock\n");
+		printf("waiting lock, waitFlag = %d, isSigioDisabled = %d\n", waitFlag, isSigioDisabled);
 		while(waitFlag)
 			;
 		printf("unlock wakes up\n");
@@ -125,6 +126,7 @@ int mi_unlock(int lockno){
 		return -2;
 	}
 	addNewInterval();//increment new interval
+	printf("mi_unlock disableSigio\n");	
 	disableSigio();
 	int result;
 	if((lockno % hostnum) == myhostid){
@@ -162,7 +164,6 @@ int mi_unlock(int lockno){
 * user will use this procedure to enter barrier
 **/
 void mi_barrier(){
-	disableSigio();
 	if(myhostid == 0){
 		barrierFlags[0] = 1;
 		int i;
@@ -173,18 +174,20 @@ void mi_barrier(){
 		if(result == 0){
 			return;
 		}
+		waitFlag = 1;
+		while(waitFlag)
+			;
 	}else{
 		sendEnterBarrierInfo();
 		mimsg_t *msg = nextFreeMsgInQueue(0);
 		msg->from = myhostid;
 		msg->to = 0;
 		msg->command = ENTER_BARRIER;
+		waitFlag = 1;
 		sendMsg(msg);
+		while(waitFlag)
+			;
 	}
-	waitFlag = 1;
-	enableSigio();
-	while(waitFlag)
-		;
 	return;
 }
 
