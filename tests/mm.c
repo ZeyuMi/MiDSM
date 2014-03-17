@@ -49,7 +49,9 @@ int main(int argc, char **argv)
 	printf("exiting barrier\n"); 
 
 	printf("Initializing matrices ....................\n");
+	mi_lock(0);
 	seqinit();
+	mi_unlock(0);
 	printf("Initializing matrices done!\n");
 
 	printf("starting barrier 2\n");

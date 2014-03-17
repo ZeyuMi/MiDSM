@@ -75,7 +75,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 					
 
 					int seqno = msg->seqno;
-					printf("seqno = %d\n", seqno);
+//					printf("seqno = %d\n", seqno);
 					if(size > 0){
 						msgEnqueue(1);	
 						(datamanager.recv_seqs[i])++;
@@ -97,7 +97,7 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 //	printf("after unblock\n");
 	while(recvQueueSize > 0){
 		mimsg_t *msg = queueTop(1);
-		printf("msg->command = %d\n", msg->command);
+//		printf("msg->command = %d\n", msg->command);
 		dispatchMsg(msg);
 		msgDequeue(1);
 	}
