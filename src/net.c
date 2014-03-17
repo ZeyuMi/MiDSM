@@ -441,7 +441,7 @@ int sendMsg(mimsg_t *msg){
 	if(msg == NULL || msg->from != myhostid || msg->to == -1 || msg->command == -1){
 		return -1;
 	}
-	disableSigio()
+	disableSigio();
 	msg->seqno = datamanager.snd_seqs[msg->to];
 	(datamanager.snd_seqs[msg->to])++;
 	enableSigio();
