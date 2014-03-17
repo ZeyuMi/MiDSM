@@ -50,7 +50,7 @@ void initsyn(){
 *	-2 --- user has already owned this lock
 **/
 int mi_lock(int lockno){
-//	printf("enter mi_lock\n");
+	printf("enter mi_lock\n");
 	if((lockno < 0) || (lockno >= LOCK_NUM)){
 		return -1;
 	}
@@ -58,13 +58,11 @@ int mi_lock(int lockno){
 		printf("I have got this lock\n");
 		return -2;
 	}
-	disableSigio();
 	int result;
 	if((lockno % hostnum) == myhostid){
 		int result = graspLock(lockno, myhostid);
 		if(result == -3){
 			waitFlag = 1;
-			enableSigio();
 			while(waitFlag)
 				;
 			if(lasthostid != -1 && lasthostid != myhostid){
@@ -73,7 +71,6 @@ int mi_lock(int lockno){
 			}
 			result = 0;
 		}else if(result >= -1){
-			enableSigio();
 			if(result != -1 && result != myhostid){
 				fetchWritenoticeAndInterval(result);
 			}else{
@@ -90,12 +87,11 @@ int mi_lock(int lockno){
 		char buffer[20];
 		sprintf(buffer, "%d", lockno);
 		apendMsgData(msg, buffer, sizeof(int));
-		sendMsg(msg);
 		waitFlag = 1;
-		enableSigio();
+		sendMsg(msg);
 		while(waitFlag)
 			;
-//		printf("unlock wakes up\n");
+		printf("unlock wakes up\n");
 		if(lasthostid != -1 && lasthostid != myhostid){
 			printf("fetch writenotice and interval\n");
 			fetchWritenoticeAndInterval(lasthostid);

@@ -371,7 +371,7 @@ void dispatchMsg(mimsg_t *msg){
 			testCommand(msg);
 			break;
 		case ACQ_LOCK:
-//			printf("receive msg ACQ_LOCK\n");
+			printf("receive msg ACQ_LOCK\n");
 			handleAcquireMsg(msg);
 			break;
 		case RLS_LOCK:
