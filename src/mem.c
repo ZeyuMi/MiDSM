@@ -14,7 +14,7 @@ extern milock_t locks[LOCK_NUM];
 page_t pageArray[MAX_PAGE_NUM];
 proc_t procArray[MAX_HOST_NUM];
 interval_t *intervalNow;
-volatile int fetchPageWaitFlag, fetchDiffWaitFlag, fetchWNIWaitFlag; 
+int fetchPageWaitFlag, fetchDiffWaitFlag, fetchWNIWaitFlag; 
 int pagenum;
 long mapfd;
 void *globalAddress;

@@ -9,7 +9,7 @@ extern int barrierTimestamps[MAX_HOST_NUM][MAX_HOST_NUM];
 extern interval_t *intervalNow;
 
 milock_t locks[LOCK_NUM];
-volatile int waitFlag;
+int waitFlag;
 int myLocks[LOCK_NUM];
 int barrierFlags[MAX_HOST_NUM];
 int lasthostid;
@@ -89,6 +89,7 @@ int mi_lock(int lockno){
 		apendMsgData(msg, buffer, sizeof(int));
 		waitFlag = 1;
 		sendMsg(msg);
+		printf("waiting lock\n");
 		while(waitFlag)
 			;
 		printf("unlock wakes up\n");
