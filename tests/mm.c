@@ -15,13 +15,13 @@ void seqinit()
 	if (myhostid == 0) 
 	{
 		for (i = 0; i < N; i++) 
-		{   printf("i = %d\n", i); 
+		{  // printf("i = %d\n", i); 
 			for (j = 0; j < N; j++)
 			{
 				a[i][j] = 1;
 				b[i][j] = 1;
 			}
-		   printf("i = %d done\n", i); 
+		   //printf("i = %d done\n", i); 
 		}
 	}
 }
@@ -58,10 +58,13 @@ int main(int argc, char **argv)
 
 	magic = N / hostnum;
 
-	for (x = myhostid * magic; x < (myhostid + 1) * magic; x++)
+	for (x = myhostid * magic; x < (myhostid + 1) * magic; x++){
+		printf("x = %d\n",x);
 		for (y = 0; y < N; y++)
 			for (z = 0; z < N; z++)
 				local[y][z] += (a[x][y] * b[x][z]);
+		printf("x = %d done\n",x);
+	}
 
 	mi_barrier();
 
