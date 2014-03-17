@@ -66,12 +66,16 @@ int main(int argc, char **argv)
 		printf("x = %d done\n",x);
 	}
 
+	printf("starting barrier 3\n");
 	mi_barrier();
+	printf("exiting barrier 3\n");
 
 	for (x = 0; x < hostnum; x++) 
 	{
 		p = (myhostid + x) % hostnum;
+		printf("lock %d\n", p);
 		mi_lock(p);
+		printf("lock %d done\n", p);
 		for (y = p * magic; y < (p + 1) * magic; y++)
 		{  
 			for (z = 0; z < N; z++)
@@ -79,7 +83,9 @@ int main(int argc, char **argv)
 				else c[y][z] += local[y][z];
 			}
 		}
+		printf("unlock %d\n", p);
 		mi_unlock(p);
+		printf("unlock %d done\n", p);
 		if (x == 0) mi_barrier();
 	}
 
