@@ -15,6 +15,7 @@ int sndHead, sndTail, sndQueueSize, recvHead, recvTail, recvQueueSize;
 netmanager datamanager;
 netmanager ackmanager;
 int isSigioDisabled = 0;
+int isSendingMsg = 0;
 
 void disableSigio(){
 	sigset_t blset;
@@ -446,6 +447,10 @@ int sendMsg(mimsg_t *msg){
 	}
 	msg->seqno = datamanager.snd_seqs[msg->to];
 	msgEnqueue(0);
+	if(isSendingMsg == 1){
+		return 0;
+	}
+	isSendingMsg = 1;
 	
 	//printf("before empty sndQueue\n");
 	while(sndQueueSize > 0){
@@ -512,6 +517,7 @@ int sendMsg(mimsg_t *msg){
 		msgDequeue(0);
 	}
 	//printf("after empty sndQueue\n");
+	isSendingMsg = 0;
 	return 0;
 }
 
