@@ -31,20 +31,15 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 	}
 	if(pageArray[pageIndex].state == RDONLY){
 		printf("RDONLY: createWritenotice for page %d\n", pageIndex);
-		printf("before twinPage\n");
 		createTwinPage(pageIndex);
-		printf("before writenotice\n");
 		createWriteNotice(pageIndex);
-		printf("RDONLY: createWritenotice for page %d done\n", pageIndex);
 		pageArray[pageIndex].state = WRITE;
 		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ | PROT_WRITE) == -1)
 			fprintf(stderr, "RDONLY mprotect error\n");
 	}else if(pageArray[pageIndex].state == MISS){
 		printf("MISS: fetchPage for page %d\n", pageIndex);
 		fetchPage(pageIndex);	
-		printf("MISS: fetchPage for page %d done\n", pageIndex);
 		pageArray[pageIndex].state = RDONLY;
-		printf("address = %p\n", pageArray[pageIndex].address);
 		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
 			fprintf(stderr, "MISS mprotect error\n");
 	}else if(pageArray[pageIndex].state == WRITE){
@@ -410,7 +405,7 @@ int grantPage(int hostid, int pageIndex){
 	msg->command = GRANT_PAGE;
 	apendMsgData(msg, (char *)&pageIndex, sizeof(int));
 	apendMsgData(msg, (char *)pageArray[pageIndex].address, PAGESIZE);
-	printf("grantPage: msg->command = %d\n", msg->command);
+//	printf("grantPage: msg->command = %d\n", msg->command);
 	sendMsg(msg);
 	return 0;
 }
