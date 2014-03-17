@@ -407,6 +407,7 @@ int grantPage(int hostid, int pageIndex){
 	msg->command = GRANT_PAGE;
 	apendMsgData(msg, (char *)&pageIndex, sizeof(int));
 	apendMsgData(msg, (char *)pageArray[pageIndex].address, PAGESIZE);
+	printf("grantPage: msg->command = %d\n", msg->command);
 	sendMsg(msg);
 	return 0;
 }
@@ -674,6 +675,7 @@ void handleFetchPageMsg(mimsg_t *msg){
 	int from = msg->from;
 	int pageIndex = *((int *)msg->data);
 	printf("fetchPage msg pageIndex = %d\n", pageIndex);
+	printf("msg from = %d\n", from);
 	grantPage(from, pageIndex);
 }
 
