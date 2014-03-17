@@ -72,9 +72,9 @@ void sigio_handler(int sigio, siginfo_t *info, void *context){
 
 					int seqno = msg->seqno;
 //					printf("seqno = %d\n", seqno);
-					if((size > 0) && (seqno == datamanager.recv_seqs[i])){
+					if(size > 0){
 						msgEnqueue(1);	
-						datamanager.recv_seqs[i] = seqno+1;
+						(datamanager.recv_seqs[i])++;
 						struct sockaddr_in dest;
 						dest.sin_family = AF_INET;
 						inet_pton(AF_INET, hosts[i].address, &(dest.sin_addr.s_addr));
@@ -441,10 +441,7 @@ int sendMsg(mimsg_t *msg){
 	if(msg == NULL || msg->from != myhostid || msg->to == -1 || msg->command == -1){
 		return -1;
 	}
-	disableSigio();
 	msg->seqno = datamanager.snd_seqs[msg->to];
-	(datamanager.snd_seqs[msg->to])++;
-	enableSigio();
 	msgEnqueue(0);
 	
 	//printf("before empty sndQueue\n");
@@ -497,6 +494,7 @@ int sendMsg(mimsg_t *msg){
 	//				printf("before select\n");
 					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
 					if(seqno == m->seqno){
+						(datamanager.snd_seqs[msg->to])++;
 						success = 1;
 						printf("seqno %d received ack!\n", seqno);
 					}	
