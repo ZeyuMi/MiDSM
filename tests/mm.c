@@ -15,12 +15,13 @@ void seqinit()
 	if (myhostid == 0) 
 	{
 		for (i = 0; i < N; i++) 
-		{  /* printf("i = %d\n", i); */
+		{   printf("i = %d\n", i); 
 			for (j = 0; j < N; j++)
 			{
 				a[i][j] = 1;
 				b[i][j] = 1;
 			}
+		   printf("i = %d done\n", i); 
 		}
 	}
 }

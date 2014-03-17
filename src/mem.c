@@ -38,7 +38,9 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ | PROT_WRITE) == -1)
 			fprintf(stderr, "RDONLY mprotect error\n");
 	}else if(pageArray[pageIndex].state == MISS){
+		printf("MISS: fetchPage for page %d\n", pageIndex);
 		fetchPage(pageIndex);	
+		printf("MISS: fetchPage for page %d done\n", pageIndex);
 		pageArray[pageIndex].state = RDONLY;
 		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ) == -1)
 			fprintf(stderr, "MISS mprotect error\n");
@@ -670,7 +672,7 @@ int createWriteNotice(int pageIndex){
 void handleFetchPageMsg(mimsg_t *msg){
 	int from = msg->from;
 	int pageIndex = *((int *)msg->data);
-//	printf("fetchPage msg pageIndex = %d\n", pageIndex);
+	printf("fetchPage msg pageIndex = %d\n", pageIndex);
 	grantPage(from, pageIndex);
 }
 
