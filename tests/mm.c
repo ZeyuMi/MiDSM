@@ -3,7 +3,7 @@
 #include "../src/mem.h"
 #include "../src/syn.h"
 
-#define N 2 
+#define N 10 
 int (*a)[N], (*b)[N], (*c)[N];
 extern int myhostid;
 extern int hostnum;
