@@ -71,11 +71,7 @@ int main(int argc, char **argv)
 	printf("starting barrier 3\n");
 	mi_barrier();
 	printf("exiting barrier 3\n");
-	for(x = 0; x < N; x++){
-		for(y = 0; y < N; y++){
-			printf("%d %d : %d\n", x, y, local[x][y]);
-		}
-	}
+
 	for (x = 0; x < hostnum; x++) 
 	{
 		p = (myhostid + x) % hostnum;
