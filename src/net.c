@@ -382,7 +382,7 @@ void dispatchMsg(mimsg_t *msg){
 	}
 	switch(msg->command){
 		case TEST_COMMAND:
-//			printf("receive msg TEST_COMMAND\n");
+			printf("receive msg TEST_COMMAND\n");
 			testCommand(msg);
 			break;
 		case ACQ_LOCK:
@@ -390,7 +390,7 @@ void dispatchMsg(mimsg_t *msg){
 			handleAcquireMsg(msg);
 			break;
 		case RLS_LOCK:
-//			printf("receive msg RLS_LOCK\n");
+			printf("receive msg RLS_LOCK\n");
 			handleReleaseMsg(msg);
 			break;
 		case GRANT_LOCK:
@@ -398,7 +398,7 @@ void dispatchMsg(mimsg_t *msg){
 			handleGrantMsg(msg);
 			break;
 		case ENTER_BARRIER:
-//			printf("receive msg ENTER_BARRIER\n");
+			printf("receive msg ENTER_BARRIER\n");
 			handleEnterBarrierMsg(msg);
 			break;
 		case EXIT_BARRIER:
@@ -406,15 +406,15 @@ void dispatchMsg(mimsg_t *msg){
 			handleExitBarrierMsg(msg);
 			break;
 		case GRANT_WN_I:
-//			printf("receive msg GRANT_WN_I\n");
+			printf("receive msg GRANT_WN_I\n");
 			handleGrantWNIMsg(msg);
 			break;
 		case GRANT_DIFF:
-//			printf("receive msg GRANT_DIFF\n");
+			printf("receive msg GRANT_DIFF\n");
 			handleGrantDiffMsg(msg);
 			break;
 		case GRANT_PAGE:
-//			printf("receive msg GRANT_PAGE\n");
+			printf("receive msg GRANT_PAGE\n");
 			handleGrantPageMsg(msg);
 			break;
 		case FETCH_PAGE:
@@ -422,19 +422,19 @@ void dispatchMsg(mimsg_t *msg){
 			handleFetchPageMsg(msg); 
 			break;
 		case FETCH_WN_I:
-//			printf("receive msg FETCH_WN_I\n");
+			printf("receive msg FETCH_WN_I\n");
 			handleFetchWNIMsg(msg);
 			break;
 		case FETCH_DIFF:
-//			printf("receive msg FETCH_DIFF\n");
+			printf("receive msg FETCH_DIFF\n");
 			handleFetchDiffMsg(msg);
 			break;
 		case GRANT_ENTER_BARRIER_INFO:
-//			printf("receive msg GRANT_ENTER_BARRIER_INFO\n");
+			printf("receive msg GRANT_ENTER_BARRIER_INFO\n");
 			handleGrantEnterBarrierMsg(msg);
 			break;
 		case GRANT_EXIT_BARRIER_INFO:
-//			printf("receive msg GRANT_EXIT_BARRIER_INFO\n");
+			printf("receive msg GRANT_EXIT_BARRIER_INFO\n");
 			handleGrantExitBarrierMsg(msg);
 			break;
 		default: 
@@ -463,7 +463,7 @@ int sendMsg(mimsg_t *msg){
 	}
 	isSendingMsg = 1;
 	
-	printf("before empty sndQueue\n");
+	//printf("before empty sndQueue\n");
 	while(sndQueueSize > 0){
 		mimsg_t *m = queueTop(0);
 		int to = m->to;
@@ -477,12 +477,12 @@ int sendMsg(mimsg_t *msg){
 		int success = 0;
 		while((retryNum < MAX_RETRY_NUM) && (success != 1)){
 
-			printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d, command = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port, m->command);
-			printf("isSigioDisabled = %d\n", isSigioDisabled);
+	//		printf("seqno %d : send msg from %d to %d, dest ip = %s, dest port num = %d, command = %d\n", m->seqno, from, to, hosts[to].address, dest.sin_port, m->command);
+	//		printf("isSigioDisabled = %d\n", isSigioDisabled);
 
-			printf("before sendto\n");
+	//		printf("before sendto\n");
 			int size = sendto(datamanager.snd_fds[to], m, m->size + MSG_HEAD_SIZE, 0, (struct sockaddr *)&dest, sizeof(dest));
-			printf("after sendto\n");
+	//		printf("after sendto\n");
 
 			if(size == -1){
 				printf("error occur when sending data\n");
@@ -496,7 +496,7 @@ int sendMsg(mimsg_t *msg){
       			}
 			unsigned long start = current_time();
       		unsigned long end = start + mytimeout;
-			printf("before try\n");
+	//		printf("before try\n");
 			while((current_time() < end) && (success != 1)){
 				fd_set set;
 				FD_ZERO(&set);
@@ -511,25 +511,25 @@ int sendMsg(mimsg_t *msg){
 				}
 				if(num > 0){
 					int seqno = 0;	
-					printf("before select\n");
+	//				printf("before select\n");
 					int size = recvfrom(fd, &seqno, 4, 0, NULL, NULL);
 					if(seqno == m->seqno){
 						(datamanager.snd_seqs[msg->to])++;
 						success = 1;
-						printf("seqno %d received ack!\n", seqno);
+	//					printf("seqno %d received ack!\n", seqno);
 					}	
 				}
 			}
-			printf("after try\n");
+	//		printf("after try\n");
 			retryNum++;
 		}
 		if(success != 1){
 			fprintf(stderr, "msg from %d to %d does not receive ack %d\n", m->from, m->to, m->seqno);
 		}
 		msgDequeue(0);
-		printf("sndQueueSize = %d\n",sndQueueSize);
+	//	printf("sndQueueSize = %d\n",sndQueueSize);
 	}
-	printf("after empty sndQueue\n");
+//	printf("after empty sndQueue\n");
 	isSendingMsg = 0;
 	return 0;
 }
