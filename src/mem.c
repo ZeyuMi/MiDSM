@@ -33,6 +33,7 @@ void segv_handler(int signo, siginfo_t *info, void *context){
 		printf("RDONLY: createWritenotice for page %d\n", pageIndex);
 		createTwinPage(pageIndex);
 		createWriteNotice(pageIndex);
+		printf("RDONLY: createWritenotice for page %d done\n", pageIndex);
 		pageArray[pageIndex].state = WRITE;
 		if(mprotect(pageArray[pageIndex].address, PAGESIZE, PROT_READ | PROT_WRITE) == -1)
 			fprintf(stderr, "RDONLY mprotect error\n");
