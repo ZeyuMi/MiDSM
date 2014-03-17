@@ -739,6 +739,7 @@ void handleGrantDiffMsg(mimsg_t *msg){
 
 
 	int find = 1;
+	int i;
 	writenotice_t *wn = pageArray[pageIndex].notices[hostid];
 	while(wn != NULL){
 		find = 1;
@@ -817,7 +818,7 @@ void handleGrantWNIMsg(mimsg_t *msg){
 
 
 
-
+	int i;
 	for(i = 0; i < MAX_HOST_NUM; i++){
 		intervalNow->timestamp[i] = msg->timestamp[i];
 	}
