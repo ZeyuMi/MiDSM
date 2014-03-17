@@ -229,12 +229,15 @@ int createSocket(short int port, int isRecv, int bufSize){
 *	-2 --- queue is full
 **/
 int msgEnqueue(int type){
+	disableSigio();
 	if((type != 0) && (type != 1)){
 		return -1;	
+		enableSigio();
 	}
 	if(type == 0){
 		if(sndQueueSize == MAX_QUEUE_SIZE){
 			return -2;
+			enableSigio();
 		}else{
 			sndTail = (sndTail + 1) % MAX_QUEUE_SIZE;	
 			sndQueueSize++;
@@ -242,11 +245,13 @@ int msgEnqueue(int type){
 	}else{
 		if(recvQueueSize == MAX_QUEUE_SIZE){
 			return -2;
+			enableSigio();
 		}else{
 			recvTail = (recvTail + 1) % MAX_QUEUE_SIZE;	
 			recvQueueSize++;
 		}
 	}
+	enableSigio();
 	return 0;
 }
 
@@ -309,20 +314,26 @@ mimsg_t *nextFreeMsgInQueue(int type){
 *	NULL     --- queue is empty or the value of type is wrong
 **/
 mimsg_t *queueTop(int type){
+	disableSigio();
 	if(type != 0 && type != 1){
 		return NULL;
+		enableSigio();
 	}
 	if(type == 0){
 		if(sndQueueSize == 0){
 			return NULL;
+			enableSigio();
 		}else{
 			return &(sndQueue[sndHead]);
+			enableSigio();
 		}
 	}else{
 		if(recvQueueSize == 0){
 			return NULL;
+			enableSigio();
 		}else{
 			return &(recvQueue[recvHead]);
+			enableSigio();
 		}
 	}
 }
@@ -338,12 +349,15 @@ mimsg_t *queueTop(int type){
 *	-2 --- queue is empty
 **/
 int msgDequeue(int type){
+	disableSigio();
 	if(type != 0 && type != 1){
 		return -1;
+		enableSigio();
 	}
 	if(type == 0){
 		if(sndQueueSize == 0){
 			return -2;	
+			enableSigio();
 		}else{
 			sndHead = (sndHead + 1) % MAX_QUEUE_SIZE;
 			sndQueueSize--;
@@ -351,11 +365,13 @@ int msgDequeue(int type){
 	}else{
 		if(recvQueueSize == 0){
 			return -2;	
+			enableSigio();
 		}else{
 			recvHead = (recvHead + 1) % MAX_QUEUE_SIZE;
 			recvQueueSize--;
 		}
 	}
+	enableSigio();
 	return 0;
 }
 
@@ -452,7 +468,7 @@ int sendMsg(mimsg_t *msg){
 	}
 	isSendingMsg = 1;
 	
-	//printf("before empty sndQueue\n");
+	printf("before empty sndQueue\n");
 	while(sndQueueSize > 0){
 		mimsg_t *m = queueTop(0);
 		int to = m->to;
