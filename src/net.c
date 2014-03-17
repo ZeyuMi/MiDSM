@@ -402,7 +402,7 @@ void dispatchMsg(mimsg_t *msg){
 			handleEnterBarrierMsg(msg);
 			break;
 		case EXIT_BARRIER:
-//			printf("receive msg EXIT_BARRIER\n");
+			printf("receive msg EXIT_BARRIER\n");
 			handleExitBarrierMsg(msg);
 			break;
 		case GRANT_WN_I:

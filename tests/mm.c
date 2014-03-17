@@ -113,5 +113,6 @@ int main(int argc, char **argv)
 		if (error == 1) 
 			printf("NOTE: There is some error in the program!\n");
 	}
+	mi_barrier();
 } 
 
