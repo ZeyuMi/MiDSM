@@ -496,7 +496,7 @@ int sendMsg(mimsg_t *msg){
 					if(seqno == m->seqno){
 						(datamanager.snd_seqs[msg->to])++;
 						success = 1;
-	//					printf("seqno %d received ack!\n", seqno);
+						printf("seqno %d received ack!\n", seqno);
 					}	
 				}
 			}

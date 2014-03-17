@@ -197,6 +197,7 @@ void mi_barrier(){
 void handleAcquireMsg(mimsg_t *msg){
 	int lockno = strtol(msg->data, NULL, 10);
 	int hostid = msg->from;
+	printf("handle Acquire lock for lock %d\n", lockno);
 	if((lockno >= 0) && (lockno <= LOCK_NUM)){
 		int result = graspLock(lockno, hostid);
 		if(result >= -1){
